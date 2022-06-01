@@ -30,8 +30,8 @@ public abstract class AbstractTest {
 
     protected SmartHRConfiguration newConfiguration() {
         SmartHRConfiguration conf = new SmartHRConfiguration();
-        conf.setSmartHREndpointURL("http://localhost:8080/smarthr/api");
-        conf.setAPIAccessToken(new GuardedString("dummy".toCharArray()));
+        conf.setEndpointURL("http://localhost:8080/smarthr/api");
+        conf.setApiAccessToken(new GuardedString("dummy".toCharArray()));
         return conf;
     }
 

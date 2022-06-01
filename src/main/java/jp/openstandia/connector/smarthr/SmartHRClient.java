@@ -31,63 +31,63 @@ public interface SmartHRClient {
     List<CrewCustomField> schema();
 
     default String getCustomSchemaGroupEndpointURL(SmartHRConfiguration configuration) {
-        String url = configuration.getSmartHREndpointURL();
-        return String.format("%sv1/crew_custom_field_template_groups", url);
+        String url = configuration.getEndpointURL();
+        return String.format("%sapi/v1/crew_custom_field_template_groups", url);
     }
 
     default String getCustomSchemaFieldEndpointURL(SmartHRConfiguration configuration) {
-        String url = configuration.getSmartHREndpointURL();
-        return String.format("%sv1/crew_custom_field_templates", url);
+        String url = configuration.getEndpointURL();
+        return String.format("%sapi/v1/crew_custom_field_templates", url);
     }
 
     default String getCrewEndpointURL(SmartHRConfiguration configuration) {
-        String url = configuration.getSmartHREndpointURL();
-        return String.format("%sv1/crews", url);
+        String url = configuration.getEndpointURL();
+        return String.format("%sapi/v1/crews", url);
     }
 
     default String getCrewEndpointURL(SmartHRConfiguration configuration, Uid uid) {
-        String url = configuration.getSmartHREndpointURL();
-        return String.format("%sv1/crews/%s", url, uid.getUidValue());
+        String url = configuration.getEndpointURL();
+        return String.format("%sapi/v1/crews/%s", url, uid.getUidValue());
     }
 
     default String getDeptEndpointURL(SmartHRConfiguration configuration) {
-        String url = configuration.getSmartHREndpointURL();
-        return String.format("%sv1/departments", url);
+        String url = configuration.getEndpointURL();
+        return String.format("%sapi/v1/departments", url);
     }
 
     default String getDeptEndpointURL(SmartHRConfiguration configuration, Uid uid) {
-        String url = configuration.getSmartHREndpointURL();
-        return String.format("%sv1/departments/%s", url, uid.getUidValue());
+        String url = configuration.getEndpointURL();
+        return String.format("%sapi/v1/departments/%s", url, uid.getUidValue());
     }
 
     default String getEmpTypeEndpointURL(SmartHRConfiguration configuration) {
-        String url = configuration.getSmartHREndpointURL();
-        return String.format("%sv1/employment_types", url);
+        String url = configuration.getEndpointURL();
+        return String.format("%sapi/v1/employment_types", url);
     }
 
     default String getEmpTypeEndpointURL(SmartHRConfiguration configuration, Uid uid) {
-        String url = configuration.getSmartHREndpointURL();
-        return String.format("%sv1/employment_types/%s", url, uid.getUidValue());
+        String url = configuration.getEndpointURL();
+        return String.format("%sapi/v1/employment_types/%s", url, uid.getUidValue());
     }
 
     default String getEmpTypeEndpointURL(SmartHRConfiguration configuration, Name name) {
-        String url = configuration.getSmartHREndpointURL();
-        return String.format("%sv1/employment_types/%s", url, name.getNameValue());
+        String url = configuration.getEndpointURL();
+        return String.format("%sapi/v1/employment_types/%s", url, name.getNameValue());
     }
 
     default String getJobTitleEndpointURL(SmartHRConfiguration configuration) {
-        String url = configuration.getSmartHREndpointURL();
-        return String.format("%sv1/job_titles", url);
+        String url = configuration.getEndpointURL();
+        return String.format("%sapi/v1/job_titles", url);
     }
 
     default String getJobTitleEndpointURL(SmartHRConfiguration configuration, Uid uid) {
-        String url = configuration.getSmartHREndpointURL();
-        return String.format("%sv1/job_titles/%s", url, uid.getUidValue());
+        String url = configuration.getEndpointURL();
+        return String.format("%sapi/v1/job_titles/%s", url, uid.getUidValue());
     }
 
     default String getJobTitleEndpointURL(SmartHRConfiguration configuration, Name name) {
-        String url = configuration.getSmartHREndpointURL();
-        return String.format("%sv1/job_titles/%s", url, name.getNameValue());
+        String url = configuration.getEndpointURL();
+        return String.format("%sapi/v1/job_titles/%s", url, name.getNameValue());
     }
 
     void close();
@@ -201,6 +201,7 @@ public interface SmartHRClient {
         public String name;
         public String code;
         public String parent_id;
+        public Department parent;
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

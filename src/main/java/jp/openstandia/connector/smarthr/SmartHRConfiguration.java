@@ -22,30 +22,33 @@ import org.identityconnectors.framework.spi.ConfigurationProperty;
 
 public class SmartHRConfiguration extends AbstractConfiguration {
 
-    private String smartHREndpointURL;
+    private String endpointURL;
     private GuardedString apiAccessToken;
     private String httpProxyHost;
-    private Integer httpProxyPort;
+    private Integer httpProxyPort = 3128;
     private String httpProxyUser;
     private GuardedString httpProxyPassword;
-    private Integer defaultQueryPageSize;
+    private Integer defaultQueryPageSize = 50;
+    private Integer connectionTimeoutInSeconds = 10;
+    private Integer readTimeoutInSeconds = 10;
+    private Integer writeTimeoutInSeconds = 10;
 
     @ConfigurationProperty(
             order = 1,
             displayMessageKey = "SmartHR API URL",
             helpMessageKey = "SmartHR API URL which is connected from this connector." +
-                    " e.g. https://<your-tenant-id>.smarthr.jp/api or https://<your-sandbox-tenant-id>.daruma.space/api",
+                    " e.g. https://<your-tenant-id>.smarthr.jp or https://<your-sandbox-tenant-id>.daruma.space",
             required = true,
             confidential = false)
-    public String getSmartHREndpointURL() {
-        if (smartHREndpointURL != null && !smartHREndpointURL.endsWith("/")) {
-            return smartHREndpointURL + "/";
+    public String getEndpointURL() {
+        if (endpointURL != null && !endpointURL.endsWith("/")) {
+            return endpointURL + "/";
         }
-        return smartHREndpointURL;
+        return endpointURL;
     }
 
-    public void setSmartHREndpointURL(String smartHREndpointURL) {
-        this.smartHREndpointURL = smartHREndpointURL;
+    public void setEndpointURL(String endpointURL) {
+        this.endpointURL = endpointURL;
     }
 
     @ConfigurationProperty(
@@ -54,11 +57,11 @@ public class SmartHRConfiguration extends AbstractConfiguration {
             helpMessageKey = "Access token for the API authentication.",
             required = true,
             confidential = true)
-    public GuardedString getAPIAccessToken() {
+    public GuardedString getApiAccessToken() {
         return apiAccessToken;
     }
 
-    public void setAPIAccessToken(GuardedString apiAccessToken) {
+    public void setApiAccessToken(GuardedString apiAccessToken) {
         this.apiAccessToken = apiAccessToken;
     }
 
@@ -83,9 +86,6 @@ public class SmartHRConfiguration extends AbstractConfiguration {
             required = false,
             confidential = false)
     public int getHttpProxyPort() {
-        if (httpProxyPort == null) {
-            return 3128; // Default
-        }
         return httpProxyPort;
     }
 
@@ -124,23 +124,62 @@ public class SmartHRConfiguration extends AbstractConfiguration {
     @ConfigurationProperty(
             order = 7,
             displayMessageKey = "Default Query Page Size",
-            helpMessageKey = "Number of results to return per page. Default: 50",
+            helpMessageKey = "Number of results to return per page. (Default: 50)",
             required = false,
             confidential = false)
     public int getDefaultQueryPageSize() {
-        if (defaultQueryPageSize == null) {
-            return 50; // Default
-        }
         return defaultQueryPageSize;
     }
 
-    public void setDefaultQueryPageSize(int defaultQueryPageSize) {
+    public void setDefaultQueryPageSize(Integer defaultQueryPageSize) {
         this.defaultQueryPageSize = defaultQueryPageSize;
+    }
+
+    @ConfigurationProperty(
+            order = 8,
+            displayMessageKey = "Connection Timeout (in seconds)",
+            helpMessageKey = "Connection timeout when connecting to SmartHR. (Default: 10)",
+            required = false,
+            confidential = false)
+    public int getConnectionTimeoutInSeconds() {
+        return connectionTimeoutInSeconds;
+    }
+
+    public void setConnectionTimeoutInSeconds(int connectionTimeoutInSeconds) {
+        this.connectionTimeoutInSeconds = connectionTimeoutInSeconds;
+    }
+
+    @ConfigurationProperty(
+            order = 9,
+            displayMessageKey = "Read Timeout (in seconds)",
+            helpMessageKey = "Read timeout when fetching data from SmartHR. (Default: 10)",
+            required = false,
+            confidential = false)
+    public int getReadTimeoutInSeconds() {
+        return readTimeoutInSeconds;
+    }
+
+    public void setReadTimeoutInSeconds(int writeTimeoutInSeconds) {
+        this.writeTimeoutInSeconds = writeTimeoutInSeconds;
+    }
+
+    @ConfigurationProperty(
+            order = 10,
+            displayMessageKey = "Write Timeout (in seconds)",
+            helpMessageKey = "Write timeout when fetching data from SmartHR. (Default: 10)",
+            required = false,
+            confidential = false)
+    public int getWriteTimeoutInSeconds() {
+        return writeTimeoutInSeconds;
+    }
+
+    public void setWriteTimeoutInSeconds(int writeTimeoutInSeconds) {
+        this.writeTimeoutInSeconds = writeTimeoutInSeconds;
     }
 
     @Override
     public void validate() {
-        if (smartHREndpointURL == null) {
+        if (endpointURL == null) {
             throw new ConfigurationException("SmartHR Endpoint URL is required");
         }
         if (apiAccessToken == null) {

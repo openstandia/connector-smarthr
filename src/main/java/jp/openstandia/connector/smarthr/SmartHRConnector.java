@@ -66,10 +66,10 @@ public class SmartHRConnector implements PoolableConnector, CreateOp, UpdateDelt
 
     protected void authenticateResource() {
         OkHttpClient.Builder okHttpBuilder = new OkHttpClient.Builder();
-        okHttpBuilder.connectTimeout(20, TimeUnit.SECONDS);
-        okHttpBuilder.readTimeout(15, TimeUnit.SECONDS);
-        okHttpBuilder.writeTimeout(15, TimeUnit.SECONDS);
-        okHttpBuilder.addInterceptor(getInterceptor(configuration.getAPIAccessToken()));
+        okHttpBuilder.connectTimeout(configuration.getConnectionTimeoutInSeconds(), TimeUnit.SECONDS);
+        okHttpBuilder.readTimeout(configuration.getReadTimeoutInSeconds(), TimeUnit.SECONDS);
+        okHttpBuilder.writeTimeout(configuration.getWriteTimeoutInSeconds(), TimeUnit.SECONDS);
+        okHttpBuilder.addInterceptor(getInterceptor(configuration.getApiAccessToken()));
 
         // Setup http proxy aware httpClient
         if (StringUtil.isNotEmpty(configuration.getHttpProxyHost())) {
