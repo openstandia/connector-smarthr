@@ -38,6 +38,8 @@ import java.util.Set;
 
 import static jp.openstandia.connector.smarthr.SmartHRCrewHandler.CREW_OBJECT_CLASS;
 import static jp.openstandia.connector.smarthr.SmartHRDepartmentHandler.DEPARTMENT_OBJECT_CLASS;
+import static jp.openstandia.connector.smarthr.SmartHREmploymentTypeHandler.EMPLOYMENT_TYPE_OBJECT_CLASS;
+import static jp.openstandia.connector.smarthr.SmartHRJobTitleHandler.JOB_TITLE_OBJECT_CLASS;
 
 public class SmartHRRESTClient implements SmartHRClient {
 
@@ -386,6 +388,276 @@ public class SmartHRRESTClient implements SmartHRClient {
 
             } catch (IOException e) {
                 throw new ConnectorIOException("Failed to call SmartHR get departments API", e);
+            }
+        }
+
+        return totalCount;
+    }
+
+    // EmploymentType
+
+    @Override
+    public Uid createEmploymentType(EmploymentType newEmpType) throws AlreadyExistsException {
+        try (Response response = post(getEmpTypeEndpointURL(configuration), newEmpType)) {
+            if (response.code() == 400) {
+                SmartHRErrorRepresentation error = MAPPER.readValue(response.body().byteStream(), SmartHRErrorRepresentation.class);
+                if (error.isAlreadyExists()) {
+                    throw new AlreadyExistsException(String.format("Department '%s' already exists.", newEmpType.name));
+                }
+                throw new InvalidAttributeValueException(String.format("Bad request when creating an employment_type. emp_code: %s", newEmpType.name));
+            }
+
+            if (response.code() != 201) {
+                throw new ConnectorIOException(String.format("Failed to create SmartHR employment_type: %s, statusCode: %d", newEmpType.name, response.code()));
+            }
+
+            Department created = MAPPER.readValue(response.body().byteStream(), Department.class);
+
+            // Created
+            if (created.code != null) {
+                return new Uid(created.id, new Name(created.code));
+            }
+            // Use "id" as __NAME__
+            return new Uid(created.id, new Name(created.id));
+
+        } catch (IOException e) {
+            throw new ConnectorIOException("Failed to call SmartHR create employment_type API", e);
+        }
+    }
+
+    @Override
+    public EmploymentType getEmploymentType(Uid uid, OperationOptions options, Set<String> attributesToGet) {
+        try (Response response = get(getEmpTypeEndpointURL(configuration, uid))) {
+            if (response.code() == 404) {
+                // Don't throw
+                return null;
+            }
+
+            if (response.code() != 200) {
+                throw new ConnectorIOException(String.format("Failed to get SmartHR employment_type: %s, statusCode: %d", uid.getUidValue(), response.code()));
+            }
+
+            EmploymentType found = MAPPER.readValue(response.body().byteStream(), EmploymentType.class);
+
+            return found;
+
+        } catch (IOException e) {
+            throw new ConnectorIOException("Failed to call SmartHR get employment_type API", e);
+        }
+    }
+
+    @Override
+    public EmploymentType getEmploymentType(Name name, OperationOptions options, Set<String> attributesToGet) {
+        try (Response response = get(getEmpTypeEndpointURL(configuration, name))) {
+            if (response.code() == 404) {
+                // Don't throw
+                return null;
+            }
+
+            if (response.code() != 200) {
+                throw new ConnectorIOException(String.format("Failed to get SmartHR employment_type: %s, statusCode: %d", name.getNameValue(), response.code()));
+            }
+
+            EmploymentType found = MAPPER.readValue(response.body().byteStream(), EmploymentType.class);
+
+            return found;
+
+        } catch (IOException e) {
+            throw new ConnectorIOException("Failed to call SmartHR get employment_type API", e);
+        }
+    }
+
+    @Override
+    public void updateEmploymentType(Uid uid, EmploymentType update) {
+        callPatch(EMPLOYMENT_TYPE_OBJECT_CLASS, getEmpTypeEndpointURL(configuration, uid), uid, update);
+    }
+
+    @Override
+    public void deleteEmploymentType(Uid uid, OperationOptions options) {
+        callDelete(EMPLOYMENT_TYPE_OBJECT_CLASS, getEmpTypeEndpointURL(configuration, uid), uid);
+    }
+
+    @Override
+    public int getEmploymentTypes(SmartHRQueryHandler<EmploymentType> handler, OperationOptions options, Set<String> attributesToGet, int pageSize, int pageOffset) {
+        // Start from 1 in SmartHR
+        int page = 1;
+        if (pageOffset > 0) {
+            page = (int) Math.ceil(pageOffset / pageSize) + 1;
+        }
+
+        int totalCount;
+
+        // If no requested pageOffset, fetch all pages
+        while (true) {
+            try (Response response = get(getEmpTypeEndpointURL(configuration), page, pageSize)) {
+                if (response.code() != 200) {
+                    throw new ConnectorIOException(String.format("Failed to get SmartHR employment_types. statusCode: %d", response.code()));
+                }
+
+                // Success
+                totalCount = getTotalCount(response);
+
+                List<EmploymentType> departments = MAPPER.readValue(response.body().byteStream(),
+                        new TypeReference<List<EmploymentType>>() {
+                        });
+                if (departments.size() == 0) {
+                    break;
+                }
+
+                departments.stream().forEach(dept -> handler.handle(dept));
+
+                if (pageOffset > 0) {
+                    // If requested pageOffset, don't process paging
+                    break;
+                }
+
+                page = getPage(response);
+                pageSize = getPerPage(response);
+
+                if ((page * pageSize) < totalCount) {
+                    page++;
+                    continue;
+                }
+
+                break;
+
+            } catch (IOException e) {
+                throw new ConnectorIOException("Failed to call SmartHR get employment_types API", e);
+            }
+        }
+
+        return totalCount;
+    }
+
+    // JobTitle
+
+    @Override
+    public Uid createJobTitle(JobTitle newJobTitle) throws AlreadyExistsException {
+        try (Response response = post(getJobTitleEndpointURL(configuration), newJobTitle)) {
+            if (response.code() == 400) {
+                SmartHRErrorRepresentation error = MAPPER.readValue(response.body().byteStream(), SmartHRErrorRepresentation.class);
+                if (error.isAlreadyExists()) {
+                    throw new AlreadyExistsException(String.format("Department '%s' already exists.", newJobTitle.name));
+                }
+                throw new InvalidAttributeValueException(String.format("Bad request when creating an job_title. emp_code: %s", newJobTitle.name));
+            }
+
+            if (response.code() != 201) {
+                throw new ConnectorIOException(String.format("Failed to create SmartHR job_title: %s, statusCode: %d", newJobTitle.name, response.code()));
+            }
+
+            Department created = MAPPER.readValue(response.body().byteStream(), Department.class);
+
+            // Created
+            if (created.code != null) {
+                return new Uid(created.id, new Name(created.code));
+            }
+            // Use "id" as __NAME__
+            return new Uid(created.id, new Name(created.id));
+
+        } catch (IOException e) {
+            throw new ConnectorIOException("Failed to call SmartHR create job_title API", e);
+        }
+    }
+
+    @Override
+    public JobTitle getJobTitle(Uid uid, OperationOptions options, Set<String> attributesToGet) {
+        try (Response response = get(getJobTitleEndpointURL(configuration, uid))) {
+            if (response.code() == 404) {
+                // Don't throw
+                return null;
+            }
+
+            if (response.code() != 200) {
+                throw new ConnectorIOException(String.format("Failed to get SmartHR job_title: %s, statusCode: %d", uid.getUidValue(), response.code()));
+            }
+
+            JobTitle found = MAPPER.readValue(response.body().byteStream(), JobTitle.class);
+
+            return found;
+
+        } catch (IOException e) {
+            throw new ConnectorIOException("Failed to call SmartHR get job_title API", e);
+        }
+    }
+
+    @Override
+    public JobTitle getJobTitle(Name name, OperationOptions options, Set<String> attributesToGet) {
+        try (Response response = get(getJobTitleEndpointURL(configuration, name))) {
+            if (response.code() == 404) {
+                // Don't throw
+                return null;
+            }
+
+            if (response.code() != 200) {
+                throw new ConnectorIOException(String.format("Failed to get SmartHR job_title: %s, statusCode: %d", name.getNameValue(), response.code()));
+            }
+
+            JobTitle found = MAPPER.readValue(response.body().byteStream(), JobTitle.class);
+
+            return found;
+
+        } catch (IOException e) {
+            throw new ConnectorIOException("Failed to call SmartHR get job_title API", e);
+        }
+    }
+
+    @Override
+    public void updateJobTitle(Uid uid, JobTitle update) {
+        callPatch(JOB_TITLE_OBJECT_CLASS, getJobTitleEndpointURL(configuration, uid), uid, update);
+    }
+
+    @Override
+    public void deleteJobTitle(Uid uid, OperationOptions options) {
+        callDelete(JOB_TITLE_OBJECT_CLASS, getJobTitleEndpointURL(configuration, uid), uid);
+    }
+
+    @Override
+    public int getJobTitles(SmartHRQueryHandler<JobTitle> handler, OperationOptions options, Set<String> attributesToGet, int pageSize, int pageOffset) {
+        // Start from 1 in SmartHR
+        int page = 1;
+        if (pageOffset > 0) {
+            page = (int) Math.ceil(pageOffset / pageSize) + 1;
+        }
+
+        int totalCount;
+
+        // If no requested pageOffset, fetch all pages
+        while (true) {
+            try (Response response = get(getJobTitleEndpointURL(configuration), page, pageSize)) {
+                if (response.code() != 200) {
+                    throw new ConnectorIOException(String.format("Failed to get SmartHR job_titles. statusCode: %d", response.code()));
+                }
+
+                // Success
+                totalCount = getTotalCount(response);
+
+                List<JobTitle> departments = MAPPER.readValue(response.body().byteStream(),
+                        new TypeReference<List<JobTitle>>() {
+                        });
+                if (departments.size() == 0) {
+                    break;
+                }
+
+                departments.stream().forEach(dept -> handler.handle(dept));
+
+                if (pageOffset > 0) {
+                    // If requested pageOffset, don't process paging
+                    break;
+                }
+
+                page = getPage(response);
+                pageSize = getPerPage(response);
+
+                if ((page * pageSize) < totalCount) {
+                    page++;
+                    continue;
+                }
+
+                break;
+
+            } catch (IOException e) {
+                throw new ConnectorIOException("Failed to call SmartHR get job_titles API", e);
             }
         }
 

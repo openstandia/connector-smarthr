@@ -60,6 +60,36 @@ public interface SmartHRClient {
         return String.format("%sv1/departments/%s", url, uid.getUidValue());
     }
 
+    default String getEmpTypeEndpointURL(SmartHRConfiguration configuration) {
+        String url = configuration.getSmartHREndpointURL();
+        return String.format("%sv1/employment_types", url);
+    }
+
+    default String getEmpTypeEndpointURL(SmartHRConfiguration configuration, Uid uid) {
+        String url = configuration.getSmartHREndpointURL();
+        return String.format("%sv1/employment_types/%s", url, uid.getUidValue());
+    }
+
+    default String getEmpTypeEndpointURL(SmartHRConfiguration configuration, Name name) {
+        String url = configuration.getSmartHREndpointURL();
+        return String.format("%sv1/employment_types/%s", url, name.getNameValue());
+    }
+
+    default String getJobTitleEndpointURL(SmartHRConfiguration configuration) {
+        String url = configuration.getSmartHREndpointURL();
+        return String.format("%sv1/job_titles", url);
+    }
+
+    default String getJobTitleEndpointURL(SmartHRConfiguration configuration, Uid uid) {
+        String url = configuration.getSmartHREndpointURL();
+        return String.format("%sv1/job_titles/%s", url, uid.getUidValue());
+    }
+
+    default String getJobTitleEndpointURL(SmartHRConfiguration configuration, Name name) {
+        String url = configuration.getSmartHREndpointURL();
+        return String.format("%sv1/job_titles/%s", url, name.getNameValue());
+    }
+
     void close();
 
     // Crew
@@ -89,6 +119,34 @@ public interface SmartHRClient {
     void deleteDepartment(Uid uid, OperationOptions options);
 
     int getDepartments(SmartHRQueryHandler<Department> handler, OperationOptions options, Set<String> attributesToGet, int pageSize, int pageOffset);
+
+    // EmploymentType
+
+    Uid createEmploymentType(EmploymentType newCrew) throws AlreadyExistsException;
+
+    EmploymentType getEmploymentType(Uid uid, OperationOptions options, Set<String> attributesToGet);
+
+    EmploymentType getEmploymentType(Name name, OperationOptions options, Set<String> attributesToGet);
+
+    void updateEmploymentType(Uid uid, EmploymentType update);
+
+    void deleteEmploymentType(Uid uid, OperationOptions options);
+
+    int getEmploymentTypes(SmartHRQueryHandler<EmploymentType> handler, OperationOptions options, Set<String> attributesToGet, int pageSize, int pageOffset);
+
+    // JobTitle
+
+    Uid createJobTitle(JobTitle newCrew) throws AlreadyExistsException;
+
+    JobTitle getJobTitle(Uid uid, OperationOptions options, Set<String> attributesToGet);
+
+    JobTitle getJobTitle(Name name, OperationOptions options, Set<String> attributesToGet);
+
+    void updateJobTitle(Uid uid, JobTitle update);
+
+    void deleteJobTitle(Uid uid, OperationOptions options);
+
+    int getJobTitles(SmartHRQueryHandler<JobTitle> handler, OperationOptions options, Set<String> attributesToGet, int pageSize, int pageOffset);
 
     // JSON Representation
 
@@ -143,6 +201,13 @@ public interface SmartHRClient {
         public String name;
         public String code;
         public String parent_id;
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    class JobTitle {
+        public String id;
+        public String name;
+        public Integer rank;
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

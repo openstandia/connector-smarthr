@@ -119,4 +119,64 @@ public class MockClient implements SmartHRClient {
 
         return pageSize;
     }
+
+    @Override
+    public Uid createEmploymentType(EmploymentType newCrew) throws AlreadyExistsException {
+        return null;
+    }
+
+    @Override
+    public EmploymentType getEmploymentType(Uid uid, OperationOptions options, Set<String> attributesToGet) {
+        return null;
+    }
+
+    @Override
+    public EmploymentType getEmploymentType(Name name, OperationOptions options, Set<String> attributesToGet) {
+        return null;
+    }
+
+    @Override
+    public void updateEmploymentType(Uid uid, EmploymentType update) {
+
+    }
+
+    @Override
+    public void deleteEmploymentType(Uid uid, OperationOptions options) {
+
+    }
+
+    @Override
+    public int getEmploymentTypes(SmartHRQueryHandler<EmploymentType> handler, OperationOptions options, Set<String> attributesToGet, int pageSize, int pageOffset) {
+        return 0;
+    }
+
+    @Override
+    public Uid createJobTitle(JobTitle newCrew) throws AlreadyExistsException {
+        return null;
+    }
+
+    @Override
+    public JobTitle getJobTitle(Uid uid, OperationOptions options, Set<String> attributesToGet) {
+        return null;
+    }
+
+    @Override
+    public JobTitle getJobTitle(Name name, OperationOptions options, Set<String> attributesToGet) {
+        return null;
+    }
+
+    @Override
+    public void updateJobTitle(Uid uid, JobTitle update) {
+
+    }
+
+    @Override
+    public void deleteJobTitle(Uid uid, OperationOptions options) {
+
+    }
+
+    @Override
+    public int getJobTitles(SmartHRQueryHandler<JobTitle> handler, OperationOptions options, Set<String> attributesToGet, int pageSize, int pageOffset) {
+        return 0;
+    }
 }

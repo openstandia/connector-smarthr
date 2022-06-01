@@ -15,7 +15,6 @@
  */
 package jp.openstandia.connector.smarthr;
 
-import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.*;
@@ -24,68 +23,59 @@ import java.util.Set;
 
 import static jp.openstandia.connector.smarthr.SchemaDefinition.SchemaOption.*;
 
-public class SmartHRDepartmentHandler implements SmartHRObjectHandler {
+public class SmartHREmploymentTypeHandler implements SmartHRObjectHandler {
 
-    public static final ObjectClass DEPARTMENT_OBJECT_CLASS = new ObjectClass("department");
+    public static final ObjectClass EMPLOYMENT_TYPE_OBJECT_CLASS = new ObjectClass("employment_type");
 
-    private static final Log LOGGER = Log.getLog(SmartHRDepartmentHandler.class);
+    private static final Log LOGGER = Log.getLog(SmartHREmploymentTypeHandler.class);
 
     private final SmartHRConfiguration configuration;
     private final SmartHRClient client;
     private final SchemaDefinition schema;
 
-    public SmartHRDepartmentHandler(SmartHRConfiguration configuration, SmartHRClient client, SchemaDefinition schema) {
+    public SmartHREmploymentTypeHandler(SmartHRConfiguration configuration, SmartHRClient client, SchemaDefinition schema) {
         this.configuration = configuration;
         this.client = client;
         this.schema = schema;
     }
 
     public static SchemaDefinition.Builder createSchema() {
-        SchemaDefinition.Builder sb = SchemaDefinition.newBuilder(DEPARTMENT_OBJECT_CLASS);
+        SchemaDefinition.Builder sb = SchemaDefinition.newBuilder(EMPLOYMENT_TYPE_OBJECT_CLASS);
 
         // __UID__
-        // The id for the department. Must be unique within the SmartHR tenant and unchangeable.
+        // The id for the employment_type. Must be unique within the SmartHR tenant and unchangeable.
         // Also, it's UUID (case-insensitive).
         // We can't use "id" for the schema because of conflict in midpoint.
-        sb.addUid("departmentId",
+        sb.addUid("employment_type_id",
                 SchemaDefinition.Types.UUID,
-                SmartHRClient.Department.class,
-                SmartHRClient.Department.class,
+                SmartHRClient.EmploymentType.class,
+                SmartHRClient.EmploymentType.class,
                 null,
                 (source) -> source.id,
                 REQUIRED, NOT_CREATABLE, NOT_UPDATABLE
         );
 
-        // code (__NAME__)
-        // The code for the department. Must be unique within the SmartHR tenant and changeable.
-        // This is NOT required attribute in the tenant. If IDM doesn't provide, use __UID__ as __NAME__.
-        // Also, it's case-sensitive.
-        sb.addName("code",
-                SchemaDefinition.Types.STRING,
-                SmartHRClient.Department.class,
-                SmartHRClient.Department.class,
-                (source, dest) -> dest.code = source,
-                (source) -> StringUtil.isEmpty(source.code) ? source.id : source.code
+        // __NAME__
+        // Use __UID__.
+        sb.addName("employment_type_id",
+                SchemaDefinition.Types.UUID,
+                SmartHRClient.EmploymentType.class,
+                SmartHRClient.EmploymentType.class,
+                (source, dest) -> dest.id = source,
+                (source) -> source.id,
+                REQUIRED, NOT_CREATABLE, NOT_UPDATABLE
         );
 
         sb.add("name",
                 SchemaDefinition.Types.STRING,
-                SmartHRClient.Department.class,
-                SmartHRClient.Department.class,
+                SmartHRClient.EmploymentType.class,
+                SmartHRClient.EmploymentType.class,
                 (source, dest) -> dest.name = source,
                 (source) -> source.name,
                 REQUIRED
         );
 
-        sb.add("parent_id",
-                SchemaDefinition.Types.UUID,
-                SmartHRClient.Department.class,
-                SmartHRClient.Department.class,
-                (source, dest) -> dest.parent_id = source,
-                (source) -> source.parent_id
-        );
-
-        LOGGER.ok("The constructed department schema");
+        LOGGER.ok("The constructed employment_type schema");
 
         return sb;
     }
@@ -98,11 +88,11 @@ public class SmartHRDepartmentHandler implements SmartHRObjectHandler {
 
     @Override
     public Uid create(Set<Attribute> attributes) {
-        SmartHRClient.Department dest = new SmartHRClient.Department();
+        SmartHRClient.EmploymentType dest = new SmartHRClient.EmploymentType();
 
         schema.apply(attributes, dest);
 
-        Uid newUid = client.createDepartment(dest);
+        Uid newUid = client.createEmploymentType(dest);
 
         return newUid;
     }
@@ -110,17 +100,17 @@ public class SmartHRDepartmentHandler implements SmartHRObjectHandler {
     @Override
     public Set<AttributeDelta> updateDelta(Uid uid, Set<AttributeDelta> modifications, OperationOptions options) {
         // To apply diff for multiple values, we need to fetch the current object
-        SmartHRClient.Department current = client.getDepartment(uid, options, null);
+        SmartHRClient.EmploymentType current = client.getEmploymentType(uid, options, null);
 
         if (current == null) {
-            throw new UnknownUidException(String.format("Not found crew. id: %s", uid.getUidValue()));
+            throw new UnknownUidException(String.format("Not found employment_type. id: %s", uid.getUidValue()));
         }
 
-        SmartHRClient.Department dest = new SmartHRClient.Department();
+        SmartHRClient.EmploymentType dest = new SmartHRClient.EmploymentType();
 
         schema.applyDelta(modifications, dest);
 
-        client.updateDepartment(uid, dest);
+        client.updateEmploymentType(uid, dest);
 
         return null;
     }
@@ -133,7 +123,7 @@ public class SmartHRDepartmentHandler implements SmartHRObjectHandler {
     @Override
     public int getByUid(Uid uid, ResultsHandler resultsHandler, OperationOptions options, Set<String> attributesToGet,
                         boolean allowPartialAttributeValues, int pageSize, int pageOffset) {
-        SmartHRClient.Department dept = client.getDepartment(uid, options, attributesToGet);
+        SmartHRClient.EmploymentType dept = client.getEmploymentType(uid, options, attributesToGet);
 
         if (dept != null) {
             resultsHandler.handle(toConnectorObject(schema, dept, attributesToGet, allowPartialAttributeValues));
@@ -145,7 +135,7 @@ public class SmartHRDepartmentHandler implements SmartHRObjectHandler {
     @Override
     public int getByName(Name name, ResultsHandler resultsHandler, OperationOptions options, Set<String> attributesToGet,
                          boolean allowPartialAttributeValues, int pageSize, int pageOffset) {
-        SmartHRClient.Department dept = client.getDepartment(name, options, attributesToGet);
+        SmartHRClient.EmploymentType dept = client.getEmploymentType(name, options, attributesToGet);
 
         if (dept != null) {
             resultsHandler.handle(toConnectorObject(schema, dept, attributesToGet, allowPartialAttributeValues));

@@ -52,6 +52,12 @@ public class SmartHRSchema {
         SchemaDefinition deptSchema = SmartHRDepartmentHandler.createSchema().build();
         schemaBuilder.defineObjectClass(deptSchema.getObjectClassInfo());
 
+        SchemaDefinition empTypeSchema = SmartHREmploymentTypeHandler.createSchema().build();
+        schemaBuilder.defineObjectClass(empTypeSchema.getObjectClassInfo());
+
+        SchemaDefinition jobTitleSchema = SmartHRJobTitleHandler.createSchema().build();
+        schemaBuilder.defineObjectClass(jobTitleSchema.getObjectClassInfo());
+
         schemaBuilder.defineOperationOption(OperationOptionInfoBuilder.buildAttributesToGet(), SearchOp.class);
         schemaBuilder.defineOperationOption(OperationOptionInfoBuilder.buildReturnDefaultAttributes(), SearchOp.class);
         schemaBuilder.defineOperationOption(OperationOptionInfoBuilder.buildPageSize(), SearchOp.class);
@@ -62,6 +68,8 @@ public class SmartHRSchema {
         this.schemaHandlerMap = new HashMap<>();
         this.schemaHandlerMap.put(crewSchema.getType(), new SmartHRCrewHandler(configuration, client, crewSchema));
         this.schemaHandlerMap.put(deptSchema.getType(), new SmartHRDepartmentHandler(configuration, client, deptSchema));
+        this.schemaHandlerMap.put(empTypeSchema.getType(), new SmartHREmploymentTypeHandler(configuration, client, empTypeSchema));
+        this.schemaHandlerMap.put(jobTitleSchema.getType(), new SmartHRJobTitleHandler(configuration, client, jobTitleSchema));
     }
 
     public SmartHRObjectHandler getSchemaHandler(ObjectClass objectClass) {
