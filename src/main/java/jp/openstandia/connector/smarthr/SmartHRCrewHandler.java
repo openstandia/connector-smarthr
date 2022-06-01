@@ -58,7 +58,7 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
         // The id for the crew. Must be unique within the SmartHR tenant and unchangeable.
         // Also, it's UUID (case-insensitive).
         // We can't use "id" for the schema because of conflict in midpoint.
-        sb.addUid("crewId",
+        sb.addUid("crew_id",
                 SchemaDefinition.Types.UUID,
                 SmartHRClient.Crew.class,
                 SmartHRClient.Crew.class,

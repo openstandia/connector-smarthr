@@ -47,7 +47,7 @@ public class SmartHRDepartmentHandler implements SmartHRObjectHandler {
         // The id for the department. Must be unique within the SmartHR tenant and unchangeable.
         // Also, it's UUID (case-insensitive).
         // We can't use "id" for the schema because of conflict in midpoint.
-        sb.addUid("departmentId",
+        sb.addUid("department_id",
                 SchemaDefinition.Types.UUID,
                 SmartHRClient.Department.class,
                 SmartHRClient.Department.class,
