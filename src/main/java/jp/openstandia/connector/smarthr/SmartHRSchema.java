@@ -35,7 +35,7 @@ public class SmartHRSchema {
         schemaBuilder.defineObjectClass(crewSchema.getObjectClassInfo());
 
         SchemaDefinition deptSchema = SmartHRDepartmentHandler.createSchema().build();
-        schemaBuilder.defineObjectClass(crewSchema.getObjectClassInfo());
+        schemaBuilder.defineObjectClass(deptSchema.getObjectClassInfo());
 
         schemaBuilder.defineOperationOption(OperationOptionInfoBuilder.buildAttributesToGet(), SearchOp.class);
         schemaBuilder.defineOperationOption(OperationOptionInfoBuilder.buildReturnDefaultAttributes(), SearchOp.class);

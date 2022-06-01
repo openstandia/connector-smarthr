@@ -3,6 +3,7 @@ package jp.openstandia.connector.smarthr;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
+import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.common.objects.Uid;
 
@@ -16,22 +17,22 @@ public interface SmartHRClient {
     List<CrewCustomField> schema();
 
     default String getCustomSchemaGroupEndpointURL(SmartHRConfiguration configuration) {
-        String url = configuration.getSmartHRURL();
+        String url = configuration.getSmartHREndpointURL();
         return String.format("%sv1/crew_custom_field_template_groups", url);
     }
 
     default String getCustomSchemaFieldEndpointURL(SmartHRConfiguration configuration) {
-        String url = configuration.getSmartHRURL();
-        return String.format("%ssv1/crew_custom_field_templates", url);
+        String url = configuration.getSmartHREndpointURL();
+        return String.format("%sv1/crew_custom_field_templates", url);
     }
 
     default String getCrewEndpointURL(SmartHRConfiguration configuration) {
-        String url = configuration.getSmartHRURL();
+        String url = configuration.getSmartHREndpointURL();
         return String.format("%sv1/crews", url);
     }
 
     default String getCrewEndpointURL(SmartHRConfiguration configuration, Uid uid) {
-        String url = configuration.getSmartHRURL();
+        String url = configuration.getSmartHREndpointURL();
         return String.format("%sv1/crews/%s", url, uid.getUidValue());
     }
 
@@ -43,11 +44,13 @@ public interface SmartHRClient {
 
     Crew getCrew(Uid uid, OperationOptions options, Set<String> attributesToGet);
 
+    Crew getCrew(Name name, OperationOptions options, Set<String> attributesToGet);
+
     void updateCrew(Uid uid, Crew update);
 
     void deleteCrew(Uid uid, OperationOptions options);
 
-    void getCrews(SmartHRQueryHandler<Crew> handler, OperationOptions options, Set<String> attributesToGet, int queryPageSize);
+    void getCrews(SmartHRQueryHandler<Crew> handler, OperationOptions options, Set<String> attributesToGet, int pageSize, int pageOffset);
 
     // Department
 
@@ -59,7 +62,7 @@ public interface SmartHRClient {
 
     void deleteDepartment(Uid uid, OperationOptions options);
 
-    void getDepartments(SmartHRQueryHandler<Crew> handler, OperationOptions options, Set<String> attributesToGet, int queryPageSize);
+    void getDepartments(SmartHRQueryHandler<Crew> handler, OperationOptions options, Set<String> attributesToGet, int pageSize, int pageOffset);
 
     // JSON Representation
 
@@ -145,20 +148,21 @@ public interface SmartHRClient {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     class SmartHRErrorRepresentation {
-        public String message;
+        public int code;
         public String type;
+        public String message;
+        public List<ErrorDetail> errors;
 
         public boolean isAlreadyExists() {
-            return type.equals("BAD_REQUEST") && message.endsWith("already exists.");
+            return code == 1;
         }
+    }
 
-        public boolean isUnauthorized() {
-            return type.equals("PERMISSION_DENIED");
-        }
-
-        public boolean isBlankUsername() {
-            return type.equals("BAD_REQUEST") && message.endsWith("The username must not be blank.");
-        }
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    class ErrorDetail {
+        public String message;
+        public String resource;
+        public String field;
     }
 
     class PatchOperation {

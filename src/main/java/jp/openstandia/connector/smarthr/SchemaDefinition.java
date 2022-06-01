@@ -46,7 +46,7 @@ public class SchemaDefinition {
 
                                         SchemaOption... options
         ) {
-            AttributeMapper attr = new AttributeMapper(name, typeClass, create, update, read, options);
+            AttributeMapper attr = new AttributeMapper(Uid.NAME, name, typeClass, create, update, read, options);
             this.attributes.add(attr);
         }
 
@@ -60,7 +60,7 @@ public class SchemaDefinition {
 
                                       SchemaOption... options
         ) {
-            AttributeMapper attr = new AttributeMapper(name, typeClass, createOrUpdate, createOrUpdate, read, options);
+            AttributeMapper attr = new AttributeMapper(Uid.NAME, name, typeClass, createOrUpdate, createOrUpdate, read, options);
             this.attributes.add(attr);
         }
 
@@ -76,7 +76,7 @@ public class SchemaDefinition {
 
                                          SchemaOption... options
         ) {
-            AttributeMapper attr = new AttributeMapper(name, typeClass, create, update, read, options);
+            AttributeMapper attr = new AttributeMapper(Name.NAME, name, typeClass, create, update, read, options);
             this.attributes.add(attr);
         }
 
@@ -90,7 +90,7 @@ public class SchemaDefinition {
 
                                        SchemaOption... options
         ) {
-            AttributeMapper attr = new AttributeMapper(name, typeClass, createOrUpdate, createOrUpdate, read, options);
+            AttributeMapper attr = new AttributeMapper(Name.NAME, name, typeClass, createOrUpdate, createOrUpdate, read, options);
             this.attributes.add(attr);
         }
 
@@ -146,10 +146,10 @@ public class SchemaDefinition {
             return schemaDefinition;
         }
 
-        public ObjectClassInfo buildSchemaInfo() {
+        private ObjectClassInfo buildSchemaInfo() {
             List<AttributeInfo> list = attributes.stream()
                     .map(attr -> {
-                        AttributeInfoBuilder define = AttributeInfoBuilder.define(attr.name);
+                        AttributeInfoBuilder define = AttributeInfoBuilder.define(attr.connectorName);
 
                         define.setType(attr.type.typeClass);
                         define.setMultiValued(attr.isMultiple);
@@ -210,9 +210,10 @@ public class SchemaDefinition {
             return builder.build();
         }
 
-        public Map<String, AttributeMapper> buildAttributeMap() {
+        private Map<String, AttributeMapper> buildAttributeMap() {
             Map<String, AttributeMapper> map = attributes.stream()
-                    .collect(Collectors.toMap(a -> a.name, a -> a));
+                    // Use connectorName for the key (to lookup by special name like __UID__
+                    .collect(Collectors.toMap(a -> a.connectorName, a -> a));
             return map;
         }
     }
@@ -332,6 +333,7 @@ public class SchemaDefinition {
     }
 
     static class AttributeMapper<T, C, U, R> {
+        private final String connectorName;
         private final String name;
         private final Types<T> type;
         boolean isMultiple;
@@ -348,7 +350,26 @@ public class SchemaDefinition {
         private DateTimeFormatter dateTimeFormat;
 
         private static final DateTimeFormatter DEFAULT_DATE_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE;
-        private static final DateTimeFormatter DEFAULT_DATE_TIME_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE;
+        private static final DateTimeFormatter DEFAULT_DATE_TIME_FORMAT = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
+
+        public AttributeMapper(String connectorName, String name, Types<T> typeClass,
+                               BiConsumer<T, C> create,
+                               BiConsumer<T, U> replace,
+                               Function<R, Object> read,
+                               SchemaOption... options
+        ) {
+            this.connectorName = connectorName;
+            this.name = name;
+            this.type = typeClass;
+            this.create = create;
+            this.replace = replace;
+            this.add = null;
+            this.remove = null;
+            this.read = read;
+            this.options = options;
+
+            this.isMultiple = false;
+        }
 
         public AttributeMapper(String name, Types<T> typeClass,
                                BiConsumer<T, C> create,
@@ -356,6 +377,7 @@ public class SchemaDefinition {
                                Function<R, Object> read,
                                SchemaOption... options
         ) {
+            this.connectorName = name;
             this.name = name;
             this.type = typeClass;
             this.create = create;
@@ -375,6 +397,7 @@ public class SchemaDefinition {
                                Function<R, Object> read,
                                SchemaOption... options
         ) {
+            this.connectorName = name;
             this.name = name;
             this.type = typeClass;
             this.create = create;
@@ -414,9 +437,9 @@ public class SchemaDefinition {
         private ZonedDateTime toDate(String dateString) {
             LocalDate date;
             if (this.dateFormat == null) {
-                date = LocalDate.parse(dateString, this.dateFormat);
-            } else {
                 date = LocalDate.parse(dateString, DEFAULT_DATE_FORMAT);
+            } else {
+                date = LocalDate.parse(dateString, this.dateFormat);
             }
             return date.atStartOfDay(ZoneId.systemDefault());
         }
@@ -424,9 +447,9 @@ public class SchemaDefinition {
         private ZonedDateTime toDateTime(String dateTimeString) {
             ZonedDateTime dateTime;
             if (this.dateTimeFormat == null) {
-                dateTime = ZonedDateTime.parse(dateTimeString, this.dateTimeFormat);
-            } else {
                 dateTime = ZonedDateTime.parse(dateTimeString, DEFAULT_DATE_TIME_FORMAT);
+            } else {
+                dateTime = ZonedDateTime.parse(dateTimeString, this.dateTimeFormat);
             }
             return dateTime;
         }
@@ -604,29 +627,29 @@ public class SchemaDefinition {
                             .map(v -> (String) v)
                             .map(v -> toDate(v))
                             .collect(Collectors.toList());
-                    return AttributeBuilder.build(name, values);
+                    return AttributeBuilder.build(connectorName, values);
 
                 } else if (type == Types.DATETIME_STRING) {
                     List<ZonedDateTime> values = ((List<?>) value).stream()
                             .map(v -> (String) v)
                             .map(v -> toDateTime(v))
                             .collect(Collectors.toList());
-                    return AttributeBuilder.build(name, values);
+                    return AttributeBuilder.build(connectorName, values);
 
                 } else {
-                    return AttributeBuilder.build(name, (List<?>) value);
+                    return AttributeBuilder.build(connectorName, (List<?>) value);
                 }
 
             } else {
                 if (type == Types.DATE_STRING) {
                     ZonedDateTime date = toDate(value.toString());
-                    return AttributeBuilder.build(name, date);
+                    return AttributeBuilder.build(connectorName, date);
 
                 } else if (type == Types.DATETIME_STRING) {
                     ZonedDateTime dateTime = toDateTime(value.toString());
-                    return AttributeBuilder.build(name, dateTime);
+                    return AttributeBuilder.build(connectorName, dateTime);
                 }
-                return AttributeBuilder.build(name, value);
+                return AttributeBuilder.build(connectorName, value);
             }
         }
     }

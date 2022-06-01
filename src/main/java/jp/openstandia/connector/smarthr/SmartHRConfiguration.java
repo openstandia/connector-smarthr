@@ -22,13 +22,13 @@ import org.identityconnectors.framework.spi.ConfigurationProperty;
 
 public class SmartHRConfiguration extends AbstractConfiguration {
 
-    private String smarthrEndpointURL;
+    private String smartHREndpointURL;
     private GuardedString apiAccessToken;
     private String httpProxyHost;
-    private int httpProxyPort;
+    private Integer httpProxyPort;
     private String httpProxyUser;
     private GuardedString httpProxyPassword;
-    private int queryPageSize;
+    private Integer defaultQueryPageSize;
 
     @ConfigurationProperty(
             order = 1,
@@ -37,15 +37,15 @@ public class SmartHRConfiguration extends AbstractConfiguration {
                     " e.g. https://<your-tenant-id>.smarthr.jp/api or https://<your-sandbox-tenant-id>.daruma.space/api",
             required = true,
             confidential = false)
-    public String getSmartHRURL() {
-        if (smarthrEndpointURL != null && !smarthrEndpointURL.endsWith("/")) {
-            return smarthrEndpointURL + "/";
+    public String getSmartHREndpointURL() {
+        if (smartHREndpointURL != null && !smartHREndpointURL.endsWith("/")) {
+            return smartHREndpointURL + "/";
         }
-        return smarthrEndpointURL;
+        return smartHREndpointURL;
     }
 
-    public void setSmartHRURL(String smarthrURL) {
-        this.smarthrEndpointURL = smarthrURL;
+    public void setSmartHREndpointURL(String smartHREndpointURL) {
+        this.smartHREndpointURL = smartHREndpointURL;
     }
 
     @ConfigurationProperty(
@@ -79,10 +79,13 @@ public class SmartHRConfiguration extends AbstractConfiguration {
     @ConfigurationProperty(
             order = 4,
             displayMessageKey = "HTTP Proxy Port",
-            helpMessageKey = "Port for the HTTP Proxy.",
+            helpMessageKey = "Port for the HTTP Proxy. (Default: 3128)",
             required = false,
             confidential = false)
     public int getHttpProxyPort() {
+        if (httpProxyPort == null) {
+            return 3128; // Default
+        }
         return httpProxyPort;
     }
 
@@ -120,21 +123,24 @@ public class SmartHRConfiguration extends AbstractConfiguration {
 
     @ConfigurationProperty(
             order = 7,
-            displayMessageKey = "Query Page Size",
-            helpMessageKey = "Number of results to return per page.",
+            displayMessageKey = "Default Query Page Size",
+            helpMessageKey = "Number of results to return per page. Default: 50",
             required = false,
             confidential = false)
-    public int getQueryPageSize() {
-        return queryPageSize;
+    public int getDefaultQueryPageSize() {
+        if (defaultQueryPageSize == null) {
+            return 50; // Default
+        }
+        return defaultQueryPageSize;
     }
 
-    public void setQueryPageSize(int queryPageSize) {
-        this.queryPageSize = queryPageSize;
+    public void setDefaultQueryPageSize(int defaultQueryPageSize) {
+        this.defaultQueryPageSize = defaultQueryPageSize;
     }
 
     @Override
     public void validate() {
-        if (smarthrEndpointURL == null) {
+        if (smartHREndpointURL == null) {
             throw new ConfigurationException("SmartHR Endpoint URL is required");
         }
         if (apiAccessToken == null) {

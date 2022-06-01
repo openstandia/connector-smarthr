@@ -36,160 +36,9 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class SmartHRUtils {
 
-    public class ObjectClassInfoBuilderWrapper {
-        private final ObjectClassInfoBuilder builder;
-
-        public ObjectClassInfoBuilderWrapper(ObjectClassInfoBuilder builder) {
-            this.builder = builder;
-        }
-
-        public ObjectClassInfoBuilderWrapper addRequired() {
-
-        }
-
-    }
-
-    public static ZonedDateTime toZoneDateTime(Instant instant) {
-        ZoneId zone = ZoneId.systemDefault();
-        return ZonedDateTime.ofInstant(instant, zone);
-    }
-
     public static ZonedDateTime toZoneDateTime(String yyyymmdd) {
         LocalDate date = LocalDate.parse(yyyymmdd);
         return date.atStartOfDay(ZoneId.systemDefault());
-    }
-
-    /**
-     * Transform a SmartHR attribute object to a Connector attribute object.
-     *
-     * @param attributeInfo
-     * @param a
-     * @return
-     */
-    public static Attribute toConnectorAttribute(AttributeInfo attributeInfo, SmartHRAttribute a) {
-        // SmartHR API returns the attribute as string even if it's other types.
-        // We need to check the type from the schema and convert it.
-        if (attributeInfo.getType() == Integer.class) {
-            return AttributeBuilder.build(a.name, Integer.parseInt(a.value));
-        }
-        if (attributeInfo.getType() == ZonedDateTime.class) {
-            // The format is YYYY-MM-DD
-            return AttributeBuilder.build(a.name, toZoneDateTime(a.value));
-        }
-        if (attributeInfo.getType() == Boolean.class) {
-            return AttributeBuilder.build(a.name, Boolean.parseBoolean(a.value));
-        }
-        if (attributeInfo.getType() == GuardedString.class) {
-            return AttributeBuilder.build(a.name, new GuardedString(a.value.toCharArray()));
-        }
-
-        // String
-        return AttributeBuilder.build(a.name, a.value);
-    }
-
-    public static SmartHRAttribute toSmartHRAttribute(Map<String, AttributeInfo> schema, AttributeDelta delta) {
-        return new SmartHRAttribute(delta.getName(), toSmartHRValue(schema, delta));
-    }
-
-    /**
-     * Transform a Connector attribute object to a SmartHR attribute object.
-     *
-     * @param schema
-     * @param attr
-     * @return
-     */
-    public static SmartHRAttribute toSmartHRAttribute(Map<String, AttributeInfo> schema, Attribute attr) {
-        return new SmartHRAttribute(attr.getName(), toSmartHRValue(schema, attr));
-    }
-
-    private static String toSmartHRValue(Map<String, AttributeInfo> schema, AttributeDelta delta) {
-        AttributeInfo attributeInfo = schema.get(delta.getName());
-        if (attributeInfo == null) {
-            throw new InvalidAttributeValueException("Invalid attribute. name: " + delta.getName());
-        }
-
-        String rtn = null;
-
-        if (attributeInfo.getType() == Integer.class) {
-            rtn = AttributeDeltaUtil.getAsStringValue(delta);
-
-        } else if (attributeInfo.getType() == ZonedDateTime.class) {
-            // The format must be YYYY-MM-DD in smarthr
-            ZonedDateTime date = (ZonedDateTime) AttributeDeltaUtil.getSingleValue(delta);
-            rtn = date.format(DateTimeFormatter.ISO_LOCAL_DATE);
-
-        } else if (attributeInfo.getType() == Boolean.class) {
-            // Use "" for false value in SmartHR API
-            if (Boolean.FALSE.equals(AttributeDeltaUtil.getBooleanValue(delta))) {
-                return "";
-            }
-            rtn = AttributeDeltaUtil.getAsStringValue(delta);
-
-        } else if (attributeInfo.getType() == GuardedString.class) {
-            GuardedString gs = AttributeDeltaUtil.getGuardedStringValue(delta);
-            if (gs == null) {
-                return "";
-            }
-            AtomicReference<String> value = new AtomicReference<>();
-            gs.access(v -> {
-                value.set(String.valueOf(v));
-            });
-            rtn = value.get();
-
-        } else {
-            rtn = AttributeDeltaUtil.getAsStringValue(delta);
-        }
-
-        if (rtn == null) {
-            // To remove, return empty string
-            return "";
-        }
-        return rtn;
-    }
-
-    private static String toSmartHRValue(Map<String, AttributeInfo> schema, Attribute attr) {
-        AttributeInfo attributeInfo = schema.get(attr.getName());
-        if (attributeInfo == null) {
-            throw new InvalidAttributeValueException("Invalid attribute. name: " + attr.getName());
-        }
-
-        String rtn = null;
-
-        if (attributeInfo.getType() == Integer.class) {
-            rtn = AttributeUtil.getAsStringValue(attr);
-
-        } else if (attributeInfo.getType() == ZonedDateTime.class) {
-            // The format must be YYYY-MM-DD in smarthr
-            ZonedDateTime date = (ZonedDateTime) AttributeUtil.getSingleValue(attr);
-            rtn = date.format(DateTimeFormatter.ISO_LOCAL_DATE);
-
-        } else if (attributeInfo.getType() == Boolean.class) {
-            // Use "" for false value in SmartHR API
-            if (Boolean.FALSE.equals(AttributeUtil.getBooleanValue(attr))) {
-                return "";
-            }
-            rtn = AttributeUtil.getAsStringValue(attr);
-
-        } else if (attributeInfo.getType() == GuardedString.class) {
-            GuardedString gs = AttributeUtil.getGuardedStringValue(attr);
-            if (gs == null) {
-                return "";
-            }
-            AtomicReference<String> value = new AtomicReference<>();
-            gs.access(v -> {
-                value.set(String.valueOf(v));
-            });
-            rtn = value.get();
-
-        } else {
-            rtn = AttributeUtil.getAsStringValue(attr);
-        }
-
-        if (rtn == null) {
-            // To remove, return empty string
-            return "";
-        }
-        return rtn;
     }
 
     /**
@@ -254,5 +103,19 @@ public class SmartHRUtils {
 
     private static Set<String> toReturnedByDefaultAttributesSet(SchemaDefinition schema) {
         return schema.getReturnedByDefaultAttributesSet();
+    }
+
+    public static int resolvePageSize(SmartHRConfiguration configuration, OperationOptions options) {
+        if (options.getPageSize() != null) {
+            return options.getPageSize();
+        }
+        return configuration.getDefaultQueryPageSize();
+    }
+
+    public static int resolvePageOffset(OperationOptions options) {
+        if (options.getPagedResultsOffset() != null) {
+            return options.getPagedResultsOffset();
+        }
+        return 0;
     }
 }

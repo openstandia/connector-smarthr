@@ -18,6 +18,7 @@ package jp.openstandia.connector.smarthr.testutil;
 import jp.openstandia.connector.smarthr.SmartHRClient;
 import jp.openstandia.connector.smarthr.SmartHRQueryHandler;
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
+import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.common.objects.Uid;
 
@@ -67,6 +68,11 @@ public class MockClient implements SmartHRClient {
     }
 
     @Override
+    public Crew getCrew(Name name, OperationOptions options, Set<String> attributesToGet) {
+        return null;
+    }
+
+    @Override
     public void updateCrew(Uid uid, Crew update) {
 
     }
@@ -77,7 +83,7 @@ public class MockClient implements SmartHRClient {
     }
 
     @Override
-    public void getCrews(SmartHRQueryHandler<Crew> handler, OperationOptions options, Set<String> attributesToGet, int queryPageSize) {
+    public void getCrews(SmartHRQueryHandler<Crew> handler, OperationOptions options, Set<String> attributesToGet, int pageSize, int pageOffset) {
 
     }
 
@@ -102,8 +108,7 @@ public class MockClient implements SmartHRClient {
     }
 
     @Override
-    public void getDepartments(SmartHRQueryHandler<Crew> handler, OperationOptions options, Set<String> attributesToGet, int queryPageSize) {
+    public void getDepartments(SmartHRQueryHandler<Crew> handler, OperationOptions options, Set<String> attributesToGet, int pageSize, int pageOffset) {
 
     }
-
 }

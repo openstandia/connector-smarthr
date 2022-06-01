@@ -20,10 +20,7 @@ import okhttp3.*;
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
-import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
-import org.identityconnectors.framework.common.exceptions.ConnectorException;
-import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
-import org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException;
+import org.identityconnectors.framework.common.exceptions.*;
 import org.identityconnectors.framework.common.objects.*;
 import org.identityconnectors.framework.common.objects.filter.FilterTranslator;
 import org.identityconnectors.framework.spi.Configuration;
@@ -38,6 +35,8 @@ import java.net.Proxy;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+
+import static jp.openstandia.connector.smarthr.SmartHRUtils.*;
 
 @ConnectorClass(configurationClass = SmartHRConfiguration.class, displayNameKey = "SmartHR Connector")
 public class SmartHRConnector implements PoolableConnector, CreateOp, UpdateDeltaOp, DeleteOp, SchemaOp, TestOp, SearchOp<SmartHRFilter>, InstanceNameAware {
@@ -168,6 +167,10 @@ public class SmartHRConnector implements PoolableConnector, CreateOp, UpdateDelt
         try {
             return getSchemaHandler(objectClass).updateDelta(uid, modifications, options);
 
+        } catch (UnknownUidException e) {
+            LOG.warn("Not found object when updating. objectClass: {0}, uid: {1}", objectClass, uid);
+            throw processRuntimeException(e);
+
         } catch (RuntimeException e) {
             throw processRuntimeException(e);
         }
@@ -182,6 +185,10 @@ public class SmartHRConnector implements PoolableConnector, CreateOp, UpdateDelt
         try {
             getSchemaHandler(objectClass).delete(uid, options);
 
+        } catch (UnknownUidException e) {
+            LOG.warn("Not found object when deleting. objectClass: {0}, uid: {1}", objectClass, uid);
+            throw processRuntimeException(e);
+
         } catch (RuntimeException e) {
             throw processRuntimeException(e);
         }
@@ -194,7 +201,31 @@ public class SmartHRConnector implements PoolableConnector, CreateOp, UpdateDelt
 
     @Override
     public void executeQuery(ObjectClass objectClass, SmartHRFilter filter, ResultsHandler resultsHandler, OperationOptions options) {
-        getSchemaHandler(objectClass).query(filter, resultsHandler, options);
+        SmartHRObjectHandler schemaHandler = getSchemaHandler(objectClass);
+        SchemaDefinition schema = schemaHandler.getSchema();
+
+        int pageSize = resolvePageSize(configuration, options);
+        int pageOffset = resolvePageOffset(options);
+
+        // Create full attributesToGet by RETURN_DEFAULT_ATTRIBUTES + ATTRIBUTES_TO_GET
+        Set<String> attributesToGet = createFullAttributesToGet(schema, options);
+        boolean allowPartialAttributeValues = shouldAllowPartialAttributeValues(options);
+
+        if (filter != null) {
+            if (filter.isByUid()) {
+                schemaHandler.getByUid((Uid) filter.attributeValue, resultsHandler, options, attributesToGet,
+                        allowPartialAttributeValues, pageSize, pageOffset);
+                return;
+            } else if (filter.isByName()) {
+                schemaHandler.getByName((Name) filter.attributeValue, resultsHandler, options, attributesToGet,
+                        allowPartialAttributeValues, pageSize, pageOffset);
+                return;
+            }
+            // No result
+            return;
+        }
+
+        schemaHandler.getAll(resultsHandler, options, attributesToGet, allowPartialAttributeValues, pageSize, pageOffset);
     }
 
     @Override
@@ -228,7 +259,7 @@ public class SmartHRConnector implements PoolableConnector, CreateOp, UpdateDelt
             // Write error log because IDM might not write full stack trace
             // It's hard to debug the error
             if (e instanceof AlreadyExistsException) {
-                LOG.warn(e, "Detected SmartHR connector error");
+                LOG.warn(e, "Detected the object already exists");
             } else {
                 LOG.error(e, "Detected SmartHR connector error");
             }

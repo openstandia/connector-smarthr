@@ -43,14 +43,14 @@ public class SmartHRFilterTranslator extends AbstractFilterTranslator<SmartHRFil
             Uid uid = (Uid) attr;
             SmartHRFilter uidFilter = new SmartHRFilter(uid.getName(),
                     SmartHRFilter.FilterType.EXACT_MATCH,
-                    uid.getUidValue());
+                    uid);
             return uidFilter;
         }
         if (attr instanceof Name) {
             Name name = (Name) attr;
             SmartHRFilter nameFilter = new SmartHRFilter(name.getName(),
                     SmartHRFilter.FilterType.EXACT_MATCH,
-                    name.getNameValue());
+                    name);
             return nameFilter;
         }
 

@@ -30,7 +30,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static jp.openstandia.connector.smarthr.SchemaDefinition.SchemaOption.*;
-import static jp.openstandia.connector.smarthr.SmartHRUtils.*;
+import static jp.openstandia.connector.smarthr.SmartHRUtils.toZoneDateTime;
 
 public class SmartHRCrewHandler implements SmartHRObjectHandler {
 
@@ -205,7 +205,7 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
                 SmartHRClient.Crew.class,
                 SmartHRClient.Crew.class,
                 (source, dest) -> dest.employment_type_id = source,
-                (source) -> source.employment_type.id
+                (source) -> source.employment_type != null ? source.employment_type.id : null
         );
         // readonly
         sb.add("employment_type.name",
@@ -213,7 +213,7 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
                 SmartHRClient.Crew.class,
                 SmartHRClient.Crew.class,
                 null,
-                (source) -> source.employment_type.name,
+                (source) -> source.employment_type != null ? source.employment_type.name : null,
                 NOT_CREATABLE, NOT_UPDATABLE
         );
         // readonly
@@ -222,7 +222,7 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
                 SmartHRClient.Crew.class,
                 SmartHRClient.Crew.class,
                 null,
-                (source) -> source.employment_type.preset_type,
+                (source) -> source.employment_type != null ? source.employment_type.preset_type : null,
                 NOT_CREATABLE, NOT_UPDATABLE
         );
         sb.add("position",
@@ -259,7 +259,7 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
                 (source, dest) -> dest.department_ids = source,
                 (add, dest) -> dest.department_ids.addAll(add),
                 (remove, dest) -> dest.department_ids.removeAll(remove),
-                (source) -> source.departments.stream().map(d -> d.id).collect(Collectors.toList())
+                (source) -> source.departments != null ? source.departments.stream().map(d -> d.id).collect(Collectors.toList()) : null
         );
         // readonly
         sb.addAsMultiple("raw_departments",
@@ -271,6 +271,9 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
                 null,
                 null,
                 (source) -> {
+                    if (source.departments == null) {
+                        return null;
+                    }
                     List<String> depts = source.departments.stream()
                             .map(d -> {
                                 // TODO use jackson native feature
@@ -415,7 +418,7 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
                     break;
                 case "file":
                 default:
-                    LOGGER.warn("Not supported crew custom field type: {}", field.type);
+                    LOGGER.info("Not supported crew custom field type: {0}", field.type);
                     continue;
             }
         }
@@ -425,10 +428,11 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
         return sb;
     }
 
-    /**
-     * @param attributes
-     * @return
-     */
+    @Override
+    public SchemaDefinition getSchema() {
+        return schema;
+    }
+
     @Override
     public Uid create(Set<Attribute> attributes) {
         SmartHRClient.Crew dest = new SmartHRClient.Crew();
@@ -440,12 +444,6 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
         return newUid;
     }
 
-    /**
-     * @param uid
-     * @param modifications
-     * @param options
-     * @return
-     */
     @Override
     public Set<AttributeDelta> updateDelta(Uid uid, Set<AttributeDelta> modifications, OperationOptions options) {
         // To apply diff for multiple values, we need to fetch the current object
@@ -456,7 +454,9 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
         }
 
         SmartHRClient.Crew dest = new SmartHRClient.Crew();
-        dest.department_ids = current.departments.stream().map(d -> d.id).collect(Collectors.toList());
+        if (current.departments != null) {
+            dest.department_ids = current.departments.stream().map(d -> d.id).collect(Collectors.toList());
+        }
 
         schema.applyDelta(modifications, dest);
 
@@ -465,48 +465,39 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
         return null;
     }
 
-    /**
-     * @param uid
-     * @param options
-     */
     @Override
     public void delete(Uid uid, OperationOptions options) {
-        try {
-            client.deleteCrew(uid, options);
+        client.deleteCrew(uid, options);
+    }
 
-        } catch (UnknownUidException e) {
-            LOGGER.warn("Not found user when deleting. uid: {0}", uid);
-            throw e;
+    @Override
+    public void getByUid(Uid uid, ResultsHandler resultsHandler, OperationOptions options, Set<String> attributesToGet,
+                         boolean allowPartialAttributeValues, int pageSize, int pageOffset) {
+        SmartHRClient.Crew crew = client.getCrew(uid, options, attributesToGet);
+
+        if (crew != null) {
+            resultsHandler.handle(toConnectorObject(schema, crew, attributesToGet, allowPartialAttributeValues));
         }
     }
 
     @Override
-    public void query(SmartHRFilter filter, ResultsHandler resultsHandler, OperationOptions options) {
-        // Create full attributesToGet by RETURN_DEFAULT_ATTRIBUTES + ATTRIBUTES_TO_GET
-        Set<String> attributesToGet = createFullAttributesToGet(schema, options);
-        boolean allowPartialAttributeValues = shouldAllowPartialAttributeValues(options);
-
-        if (filter != null && (filter.isByUid() || filter.isByName())) {
-            get(filter.attributeValue, resultsHandler, options, attributesToGet, allowPartialAttributeValues);
-            return;
-        }
-
-        client.getCrews((crew) -> resultsHandler.handle(toConnectorObject(crew, attributesToGet, allowPartialAttributeValues)),
-                options, attributesToGet, 50);
-    }
-
-
-    private void get(String username, ResultsHandler resultsHandler, OperationOptions options, Set<String> attributesToGet, boolean allowPartialAttributeValues) {
-        SmartHRClient.Crew user = client.getCrew(new Uid(username), options, attributesToGet);
+    public void getByName(Name name, ResultsHandler resultsHandler, OperationOptions options, Set<String> attributesToGet,
+                          boolean allowPartialAttributeValues, int pageSize, int pageOffset) {
+        SmartHRClient.Crew user = client.getCrew(name, options, attributesToGet);
 
         if (user != null) {
-            resultsHandler.handle(toConnectorObject(user, attributesToGet, allowPartialAttributeValues));
+            resultsHandler.handle(toConnectorObject(schema, user, attributesToGet, allowPartialAttributeValues));
         }
     }
 
-    private ConnectorObject toConnectorObject(SmartHRClient.Crew crew,
-                                              Set<String> attributesToGet, boolean allowPartialAttributeValues) {
-        ConnectorObjectBuilder builder = schema.toConnectorObjectBuilder(crew, attributesToGet, allowPartialAttributeValues);
-        return builder.build();
+    @Override
+    public void getAll(ResultsHandler resultsHandler, OperationOptions options, Set<String> attributesToGet,
+                       boolean allowPartialAttributeValues, int pageSize, int pageOffset) {
+        client.getCrews((crew) -> resultsHandler.handle(toConnectorObject(schema, crew, attributesToGet, allowPartialAttributeValues)),
+                options, attributesToGet, pageSize, pageOffset);
+    }
+
+    private void get(String username, ResultsHandler resultsHandler, OperationOptions options, Set<String> attributesToGet, boolean allowPartialAttributeValues) {
+
     }
 }

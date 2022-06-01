@@ -16,7 +16,9 @@ import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.common.objects.Uid;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static jp.openstandia.connector.smarthr.SmartHRCrewHandler.CREW_OBJECT_CLASS;
@@ -39,7 +41,7 @@ public class SmartHRRESTClient implements SmartHRClient {
 
     @Override
     public void test() {
-        try (Response response = get(configuration.getSmartHRURL())) {
+        try (Response response = get(getCustomSchemaFieldEndpointURL(configuration))) {
             if (response.code() != 200) {
                 // Something wrong..
                 String body = response.body().string();
@@ -96,9 +98,9 @@ public class SmartHRRESTClient implements SmartHRClient {
             if (response.code() == 400) {
                 SmartHRErrorRepresentation error = MAPPER.readValue(response.body().byteStream(), SmartHRErrorRepresentation.class);
                 if (error.isAlreadyExists()) {
-                    throw new AlreadyExistsException(String.format("User '%s' already exists.", newCrew.emp_code));
+                    throw new AlreadyExistsException(String.format("Crew '%s' already exists.", newCrew.emp_code));
                 }
-                throw new InvalidAttributeValueException(String.format("Bad request when creating a user. username: %s", newCrew.emp_code));
+                throw new InvalidAttributeValueException(String.format("Bad request when creating a crew. emp_code: %s", newCrew.emp_code));
             }
 
             if (response.code() != 201) {
@@ -141,6 +143,31 @@ public class SmartHRRESTClient implements SmartHRClient {
     }
 
     @Override
+    public Crew getCrew(Name name, OperationOptions options, Set<String> attributesToGet) {
+        Map<String, String> params = new HashMap<>();
+        params.put("emp_code", name.getNameValue());
+
+        try (Response response = get(getCrewEndpointURL(configuration), params, 1, 1)) {
+            if (response.code() != 200) {
+                throw new ConnectorIOException(String.format("Failed to get SmartHR crew by emp_code. statusCode: %d", response.code()));
+            }
+
+            // Success
+            List<Crew> crews = MAPPER.readValue(response.body().byteStream(),
+                    new TypeReference<List<Crew>>() {
+                    });
+            if (crews.size() == 0) {
+                return null;
+            }
+
+            return crews.get(0);
+
+        } catch (IOException e) {
+            throw new ConnectorIOException("Failed to call SmartHR list crews API", e);
+        }
+    }
+
+    @Override
     public void updateCrew(Uid uid, Crew update) {
         callPatch(CREW_OBJECT_CLASS, getCrewEndpointURL(configuration, uid), uid, update);
     }
@@ -151,11 +178,12 @@ public class SmartHRRESTClient implements SmartHRClient {
     }
 
     @Override
-    public void getCrews(SmartHRQueryHandler<Crew> handler, OperationOptions options, Set<String> attributesToGet, int queryPageSize) {
-        // Start from 1
+    public void getCrews(SmartHRQueryHandler<Crew> handler, OperationOptions options, Set<String> attributesToGet, int queryPageSize, int pageOffset) {
+        // Start from 1 in SmartHR
         int page = 1;
 
-        while (true) {
+        // If no requested pageOffset, fetch all pages
+        while (pageOffset == 0) {
             try (Response response = get(getCrewEndpointURL(configuration), page, queryPageSize)) {
                 if (response.code() != 200) {
                     throw new ConnectorIOException(String.format("Failed to get SmartHR crews. statusCode: %d", response.code()));
@@ -183,7 +211,7 @@ public class SmartHRRESTClient implements SmartHRClient {
                 break;
 
             } catch (IOException e) {
-                throw new ConnectorIOException("Failed to call SmartHR get users API", e);
+                throw new ConnectorIOException("Failed to call SmartHR get crews API", e);
             }
         }
     }
@@ -211,7 +239,7 @@ public class SmartHRRESTClient implements SmartHRClient {
     }
 
     @Override
-    public void getDepartments(SmartHRQueryHandler<Crew> handler, OperationOptions options, Set<String> attributesToGet, int queryPageSize) {
+    public void getDepartments(SmartHRQueryHandler<Crew> handler, OperationOptions options, Set<String> attributesToGet, int queryPageSize, int pageOffset) {
 
     }
 
@@ -335,6 +363,25 @@ public class SmartHRRESTClient implements SmartHRClient {
     private Response get(String url) throws IOException {
         final Request request = new Request.Builder()
                 .url(url)
+                .get()
+                .build();
+
+        final Response response = httpClient.newCall(request).execute();
+
+        throwExceptionIfUnauthorized(response);
+        throwExceptionIfServerError(response);
+
+        return response;
+    }
+
+    private Response get(String url, Map<String, String> params, int page, int queryPageSize) throws IOException {
+        HttpUrl.Builder httpBuilder = HttpUrl.parse(url).newBuilder();
+        httpBuilder.addQueryParameter("page", String.valueOf(page));
+        httpBuilder.addQueryParameter("per_page", String.valueOf(queryPageSize));
+        params.entrySet().stream().forEach(entry -> httpBuilder.addQueryParameter(entry.getKey(), entry.getValue()));
+
+        final Request request = new Request.Builder()
+                .url(httpBuilder.build())
                 .get()
                 .build();
 

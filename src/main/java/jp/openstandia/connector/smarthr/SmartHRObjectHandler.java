@@ -12,5 +12,18 @@ public interface SmartHRObjectHandler {
 
     void delete(Uid uid, OperationOptions options);
 
-    void query(SmartHRFilter filter, ResultsHandler resultsHandler, OperationOptions options);
+    void getByUid(Uid uid, ResultsHandler resultsHandler, OperationOptions options, Set<String> attributesToGet, boolean allowPartialAttributeValues, int pageSize, int pageOffset);
+
+    void getByName(Name name, ResultsHandler resultsHandler, OperationOptions options, Set<String> attributesToGet, boolean allowPartialAttributeValues, int pageSize, int pageOffset);
+
+    void getAll(ResultsHandler resultsHandler, OperationOptions options, Set<String> attributesToGet, boolean allowPartialAttributeValues, int pageSize, int pageOffset);
+
+    default <T> ConnectorObject toConnectorObject(SchemaDefinition schema, T crew,
+                                                  Set<String> attributesToGet, boolean allowPartialAttributeValues) {
+        ConnectorObjectBuilder builder = schema.toConnectorObjectBuilder(crew, attributesToGet, allowPartialAttributeValues);
+        return builder.build();
+    }
+
+    SchemaDefinition getSchema();
+
 }

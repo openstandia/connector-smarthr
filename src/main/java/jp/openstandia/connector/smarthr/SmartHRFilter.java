@@ -15,15 +15,16 @@
  */
 package jp.openstandia.connector.smarthr;
 
+import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.Uid;
 
 public class SmartHRFilter {
     final String attributeName;
     final FilterType filterType;
-    final String attributeValue;
+    final Attribute attributeValue;
 
-    public SmartHRFilter(String attributeName, FilterType filterType, String attributeValue) {
+    public SmartHRFilter(String attributeName, FilterType filterType, Attribute attributeValue) {
         this.attributeName = attributeName;
         this.filterType = filterType;
         this.attributeValue = attributeValue;

@@ -33,14 +33,10 @@ class SchemaTest extends AbstractTest {
         assertNotNull(schema);
         assertEquals(4, schema.getObjectClassInfo().size());
 
-        Optional<ObjectClassInfo> user = schema.getObjectClassInfo().stream().filter(o -> o.is("User")).findFirst();
-        Optional<ObjectClassInfo> group = schema.getObjectClassInfo().stream().filter(o -> o.is("UserGroup")).findFirst();
-        Optional<ObjectClassInfo> connection = schema.getObjectClassInfo().stream().filter(o -> o.is("Connection")).findFirst();
-        Optional<ObjectClassInfo> connectionGroup = schema.getObjectClassInfo().stream().filter(o -> o.is("ConnectionGroup")).findFirst();
+        Optional<ObjectClassInfo> crew = schema.getObjectClassInfo().stream().filter(o -> o.is("crew")).findFirst();
+        Optional<ObjectClassInfo> department = schema.getObjectClassInfo().stream().filter(o -> o.is("department")).findFirst();
 
-        assertTrue(user.isPresent());
-        assertTrue(group.isPresent());
-        assertTrue(connection.isPresent());
-        assertTrue(connectionGroup.isPresent());
+        assertTrue(crew.isPresent());
+        assertTrue(department.isPresent());
     }
 }
