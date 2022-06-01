@@ -142,6 +142,7 @@ public interface SmartHRClient {
         public String id;
         public String name;
         public String code;
+        public String parent_id;
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

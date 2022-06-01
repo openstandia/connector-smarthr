@@ -21,7 +21,6 @@ import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.*;
 
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static jp.openstandia.connector.smarthr.SchemaDefinition.SchemaOption.*;
 
@@ -83,6 +82,23 @@ public class SmartHRDepartmentHandler implements SmartHRObjectHandler {
                 (source) -> StringUtil.isEmpty(source.code) ? source.id : source.code
         );
 
+        sb.add("name",
+                SchemaDefinition.Types.STRING,
+                SmartHRClient.Department.class,
+                SmartHRClient.Department.class,
+                (source, dest) -> dest.name = source,
+                (source) -> source.name,
+                REQUIRED
+        );
+
+        sb.add("parent_id",
+                SchemaDefinition.Types.UUID,
+                SmartHRClient.Department.class,
+                SmartHRClient.Department.class,
+                (source, dest) -> dest.parent_id = source,
+                (source) -> source.parent_id
+        );
+
         LOGGER.ok("The constructed department schema");
 
         return sb;
@@ -96,11 +112,11 @@ public class SmartHRDepartmentHandler implements SmartHRObjectHandler {
 
     @Override
     public Uid create(Set<Attribute> attributes) {
-        SmartHRClient.Crew dest = new SmartHRClient.Crew();
+        SmartHRClient.Department dest = new SmartHRClient.Department();
 
         schema.apply(attributes, dest);
 
-        Uid newUid = client.createCrew(dest);
+        Uid newUid = client.createDepartment(dest);
 
         return newUid;
     }
