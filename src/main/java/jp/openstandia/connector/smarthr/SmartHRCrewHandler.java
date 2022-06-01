@@ -288,7 +288,7 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
                             .collect(Collectors.toList());
                     return depts;
                 },
-                NOT_CREATABLE, NOT_UPDATABLE
+                NOT_CREATABLE, NOT_UPDATABLE, NOT_RETURN_BY_DEFAULT
         );
 
         // 現住所と連絡先
@@ -297,7 +297,8 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
                 SmartHRClient.Crew.class,
                 SmartHRClient.Crew.class,
                 (source, dest) -> dest.tel_number = source,
-                (source) -> source.tel_number
+                (source) -> source.tel_number,
+                NOT_RETURN_BY_DEFAULT
         );
 
         // 雇用契約情報

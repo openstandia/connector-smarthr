@@ -292,7 +292,7 @@ public class SchemaDefinition {
         builder.addAttribute(name.apply(source));
 
         for (Map.Entry<String, AttributeMapper> entry : attributeMap.entrySet()) {
-            if (shouldReturn(attributesToGet, entry.getKey())) {
+            if (shouldReturn(attributesToGet, entry.getKey(), entry.getValue().isNotReturnByDefault)) {
                 Attribute value = entry.getValue().apply(source);
                 if (value != null) {
                     builder.addAttribute(value);
@@ -350,6 +350,7 @@ public class SchemaDefinition {
         private final String name;
         private final Types<T> type;
         boolean isMultiple;
+        boolean isNotReturnByDefault;
 
         private final BiConsumer<T, C> create;
         private final BiConsumer<T, U> replace;
@@ -382,6 +383,9 @@ public class SchemaDefinition {
             this.options = options;
 
             this.isMultiple = false;
+            if (Arrays.stream(options).anyMatch(o -> o == SchemaOption.NOT_RETURN_BY_DEFAULT)) {
+                this.isNotReturnByDefault = true;
+            }
         }
 
         public AttributeMapper(String name, Types<T> typeClass,
@@ -401,6 +405,9 @@ public class SchemaDefinition {
             this.options = options;
 
             this.isMultiple = false;
+            if (Arrays.stream(options).anyMatch(o -> o == SchemaOption.NOT_RETURN_BY_DEFAULT)) {
+                this.isNotReturnByDefault = true;
+            }
         }
 
         public AttributeMapper(String name, Types<T> typeClass,
@@ -421,6 +428,9 @@ public class SchemaDefinition {
             this.options = options;
 
             this.isMultiple = true;
+            if (Arrays.stream(options).anyMatch(o -> o == SchemaOption.NOT_RETURN_BY_DEFAULT)) {
+                this.isNotReturnByDefault = true;
+            }
         }
 
         public boolean isStringType() {

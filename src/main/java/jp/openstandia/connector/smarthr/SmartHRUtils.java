@@ -15,19 +15,13 @@
  */
 package jp.openstandia.connector.smarthr;
 
-import org.identityconnectors.common.security.GuardedString;
-import org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException;
 import org.identityconnectors.framework.common.objects.*;
 
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Provides utility methods
@@ -46,11 +40,12 @@ public class SmartHRUtils {
      *
      * @param attrsToGetSet
      * @param attr
+     * @param isNotReturnByDefault
      * @return
      */
-    public static boolean shouldReturn(Set<String> attrsToGetSet, String attr) {
+    public static boolean shouldReturn(Set<String> attrsToGetSet, String attr, boolean isNotReturnByDefault) {
         if (attrsToGetSet == null) {
-            return true;
+            return !isNotReturnByDefault;
         }
         return attrsToGetSet.contains(attr);
     }
