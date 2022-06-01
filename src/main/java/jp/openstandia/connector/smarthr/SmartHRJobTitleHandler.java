@@ -76,15 +76,15 @@ public class SmartHRJobTitleHandler implements SmartHRObjectHandler {
         // Metadata (readonly)
         sb.add("created_at",
                 SchemaDefinition.Types.DATETIME_STRING,
-                SmartHRClient.Crew.class,
-                SmartHRClient.Crew.class,
+                SmartHRClient.JobTitle.class,
+                SmartHRClient.JobTitle.class,
                 null,
                 (source) -> source.created_at
         );
         sb.add("updated_at",
                 SchemaDefinition.Types.DATETIME_STRING,
-                SmartHRClient.Crew.class,
-                SmartHRClient.Crew.class,
+                SmartHRClient.JobTitle.class,
+                SmartHRClient.JobTitle.class,
                 null,
                 (source) -> source.updated_at
         );

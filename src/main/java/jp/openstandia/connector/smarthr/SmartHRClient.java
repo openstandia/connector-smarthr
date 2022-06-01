@@ -194,6 +194,8 @@ public interface SmartHRClient {
         public String id;
         public String name;
         public String preset_type;
+        public String created_at;
+        public String updated_at;
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -204,6 +206,8 @@ public interface SmartHRClient {
         public String code;
         public String parent_id;
         public Department parent;
+        public String created_at;
+        public String updated_at;
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -212,6 +216,8 @@ public interface SmartHRClient {
         public String id;
         public String name;
         public Integer rank;
+        public String created_at;
+        public String updated_at;
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
