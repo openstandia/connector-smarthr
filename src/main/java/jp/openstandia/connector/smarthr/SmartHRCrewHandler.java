@@ -24,6 +24,7 @@ import org.identityconnectors.framework.common.objects.*;
 
 import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -454,7 +455,9 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
         }
 
         SmartHRClient.Crew dest = new SmartHRClient.Crew();
-        if (current.departments != null) {
+        if (current.departments == null) {
+            dest.department_ids = new ArrayList<>();
+        } else {
             dest.department_ids = current.departments.stream().map(d -> d.id).collect(Collectors.toList());
         }
 
