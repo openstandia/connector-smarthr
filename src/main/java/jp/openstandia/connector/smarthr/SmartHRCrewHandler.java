@@ -363,7 +363,7 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
                             },
                             (source) -> {
                                 Optional<SmartHRClient.CustomField> value = source.custom_fields.stream()
-                                        .filter(f -> f.template_id.equals(field.id))
+                                        .filter(f -> f.template.id.equals(field.id))
                                         .findFirst();
                                 if (value.isPresent()) {
                                     return value.get().value;
@@ -385,7 +385,7 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
                             },
                             (source) -> {
                                 Optional<SmartHRClient.CustomField> value = source.custom_fields.stream()
-                                        .filter(f -> f.template_id.equals(field.id))
+                                        .filter(f -> f.template.id.equals(field.id))
                                         .findFirst();
                                 if (value.isPresent()) {
                                     return new BigDecimal(value.get().value);
@@ -407,7 +407,7 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
                             },
                             (source) -> {
                                 Optional<SmartHRClient.CustomField> value = source.custom_fields.stream()
-                                        .filter(f -> f.template_id.equals(field.id))
+                                        .filter(f -> f.template.id.equals(field.id))
                                         .findFirst();
                                 if (value.isPresent()) {
                                     return toZoneDateTime(value.get().value);

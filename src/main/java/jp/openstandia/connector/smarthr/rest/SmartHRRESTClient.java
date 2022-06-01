@@ -196,10 +196,17 @@ public class SmartHRRESTClient implements SmartHRClient {
     public void getCrews(SmartHRQueryHandler<Crew> handler, OperationOptions options, Set<String> attributesToGet, int queryPageSize, int pageOffset) {
         // Start from 1 in SmartHR
         int page = 1;
+        if (pageOffset > 0) {
+            page = (int) Math.ceil(pageOffset / queryPageSize) + 1;
+        }
+
+        // TODO Support sort by other attributes
+        Map<String, String> params = new HashMap<>();
+        params.put("sort", "emp_code");
 
         // If no requested pageOffset, fetch all pages
-        while (pageOffset == 0) {
-            try (Response response = get(getCrewEndpointURL(configuration), page, queryPageSize)) {
+        while (true) {
+            try (Response response = get(getCrewEndpointURL(configuration), params, page, queryPageSize)) {
                 if (response.code() != 200) {
                     throw new ConnectorIOException(String.format("Failed to get SmartHR crews. statusCode: %d", response.code()));
                 }
@@ -213,6 +220,11 @@ public class SmartHRRESTClient implements SmartHRClient {
                 }
 
                 crews.stream().forEach(crew -> handler.handle(crew));
+
+                if (pageOffset > 0) {
+                    // If requested pageOffset, don't process paging
+                    break;
+                }
 
                 int totalCount = getTotalCount(response);
                 page = getPage(response);
