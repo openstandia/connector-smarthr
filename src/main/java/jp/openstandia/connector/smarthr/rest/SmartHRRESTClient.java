@@ -114,7 +114,7 @@ public class SmartHRRESTClient implements SmartHRClient {
     public Uid createCrew(Crew newCrew) throws AlreadyExistsException {
         try (Response response = post(getCrewEndpointURL(configuration), newCrew)) {
             if (response.code() == 400) {
-                SmartHRErrorRepresentation error = MAPPER.readValue(response.body().byteStream(), SmartHRErrorRepresentation.class);
+                ErrorResponse error = MAPPER.readValue(response.body().byteStream(), ErrorResponse.class);
                 if (error.isAlreadyExists()) {
                     throw new AlreadyExistsException(String.format("Crew '%s' already exists.", newCrew.emp_code));
                 }
@@ -257,7 +257,7 @@ public class SmartHRRESTClient implements SmartHRClient {
     public Uid createDepartment(Department newDept) throws AlreadyExistsException {
         try (Response response = post(getDeptEndpointURL(configuration), newDept)) {
             if (response.code() == 400) {
-                SmartHRErrorRepresentation error = MAPPER.readValue(response.body().byteStream(), SmartHRErrorRepresentation.class);
+                ErrorResponse error = MAPPER.readValue(response.body().byteStream(), ErrorResponse.class);
                 if (error.isAlreadyExists()) {
                     throw new AlreadyExistsException(String.format("Department '%s' already exists.", newDept.code));
                 }
@@ -400,7 +400,7 @@ public class SmartHRRESTClient implements SmartHRClient {
     public Uid createEmploymentType(EmploymentType newEmpType) throws AlreadyExistsException {
         try (Response response = post(getEmpTypeEndpointURL(configuration), newEmpType)) {
             if (response.code() == 400) {
-                SmartHRErrorRepresentation error = MAPPER.readValue(response.body().byteStream(), SmartHRErrorRepresentation.class);
+                ErrorResponse error = MAPPER.readValue(response.body().byteStream(), ErrorResponse.class);
                 if (error.isAlreadyExists()) {
                     throw new AlreadyExistsException(String.format("Department '%s' already exists.", newEmpType.name));
                 }
@@ -411,11 +411,11 @@ public class SmartHRRESTClient implements SmartHRClient {
                 throw new ConnectorIOException(String.format("Failed to create SmartHR employment_type: %s, statusCode: %d", newEmpType.name, response.code()));
             }
 
-            Department created = MAPPER.readValue(response.body().byteStream(), Department.class);
+            EmploymentType created = MAPPER.readValue(response.body().byteStream(), EmploymentType.class);
 
             // Created
-            if (created.code != null) {
-                return new Uid(created.id, new Name(created.code));
+            if (created.name != null) {
+                return new Uid(created.id, new Name(created.name));
             }
             // Use "id" as __NAME__
             return new Uid(created.id, new Name(created.id));
@@ -535,7 +535,7 @@ public class SmartHRRESTClient implements SmartHRClient {
     public Uid createJobTitle(JobTitle newJobTitle) throws AlreadyExistsException {
         try (Response response = post(getJobTitleEndpointURL(configuration), newJobTitle)) {
             if (response.code() == 400) {
-                SmartHRErrorRepresentation error = MAPPER.readValue(response.body().byteStream(), SmartHRErrorRepresentation.class);
+                ErrorResponse error = MAPPER.readValue(response.body().byteStream(), ErrorResponse.class);
                 if (error.isAlreadyExists()) {
                     throw new AlreadyExistsException(String.format("Department '%s' already exists.", newJobTitle.name));
                 }
@@ -546,11 +546,11 @@ public class SmartHRRESTClient implements SmartHRClient {
                 throw new ConnectorIOException(String.format("Failed to create SmartHR job_title: %s, statusCode: %d", newJobTitle.name, response.code()));
             }
 
-            Department created = MAPPER.readValue(response.body().byteStream(), Department.class);
+            JobTitle created = MAPPER.readValue(response.body().byteStream(), JobTitle.class);
 
             // Created
-            if (created.code != null) {
-                return new Uid(created.id, new Name(created.code));
+            if (created.name != null) {
+                return new Uid(created.id, new Name(created.name));
             }
             // Use "id" as __NAME__
             return new Uid(created.id, new Name(created.id));

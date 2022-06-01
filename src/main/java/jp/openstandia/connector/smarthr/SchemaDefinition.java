@@ -315,18 +315,18 @@ public class SchemaDefinition {
         public static final Types<String> STRING_URI = new Types(String.class);
         public static final Types<String> STRING_LDAP_DN = new Types(String.class);
         public static final Types<String> XML = new Types(String.class);
-        public static final Types<String> UUID = new Types(String.class);
         public static final Types<String> JSON = new Types(String.class);
+        public static final Types<String> UUID = new Types(String.class);
         public static final Types<Integer> INTEGER = new Types(Integer.class);
         public static final Types<Integer> LONG = new Types(Long.class);
         public static final Types<Integer> FLOAT = new Types(Float.class);
         public static final Types<Integer> DOUBLE = new Types(Double.class);
+        public static final Types<Boolean> BOOLEAN = new Types(Boolean.class);
         public static final Types<BigDecimal> BIG_DECIMAL = new Types(BigDecimal.class);
         public static final Types<String> DATE_STRING = new Types(ZonedDateTime.class);
         public static final Types<String> DATETIME_STRING = new Types(ZonedDateTime.class);
         public static final Types<ZonedDateTime> DATE = new Types(ZonedDateTime.class);
         public static final Types<ZonedDateTime> DATETIME = new Types(ZonedDateTime.class);
-        public static final Types<Boolean> BOOLEAN = new Types(Boolean.class);
 
         private final Class<TC> typeClass;
 
@@ -425,6 +425,12 @@ public class SchemaDefinition {
             this.isMultiple = true;
         }
 
+        public boolean isStringType() {
+            return type == Types.STRING || type == Types.STRING_URI || type == Types.STRING_LDAP_DN ||
+                    type == Types.STRING_LDAP_DN || type == Types.STRING_CASE_IGNORE || type == Types.XML ||
+                    type == Types.JSON || type == Types.UUID;
+        }
+
         public AttributeMapper dateFormat(DateTimeFormatter dateFormat) {
             this.dateFormat = dateFormat;
             return this;
@@ -495,7 +501,7 @@ public class SchemaDefinition {
                 }
 
             } else {
-                if (type == Types.STRING) {
+                if (isStringType()) {
                     String value = AttributeUtil.getAsStringValue(source);
                     create.accept((T) value, dest);
 
@@ -523,12 +529,17 @@ public class SchemaDefinition {
                     BigDecimal value = AttributeUtil.getBigDecimalValue(source);
                     create.accept((T) value, dest);
 
-                } else if (type == Types.DATE) {
+                } else if (type == Types.DATE || type == Types.DATETIME) {
                     ZonedDateTime date = (ZonedDateTime) AttributeUtil.getSingleValue(source);
                     String formatted = formatDate(date);
                     create.accept((T) formatted, dest);
 
-                } else if (type == Types.DATETIME) {
+                } else if (type == Types.DATE_STRING) {
+                    ZonedDateTime date = (ZonedDateTime) AttributeUtil.getSingleValue(source);
+                    String formatted = formatDate(date);
+                    create.accept((T) formatted, dest);
+
+                } else if (type == Types.DATETIME_STRING) {
                     ZonedDateTime date = (ZonedDateTime) AttributeUtil.getSingleValue(source);
                     String formatted = formatDateTime(date);
                     create.accept((T) formatted, dest);
@@ -581,7 +592,7 @@ public class SchemaDefinition {
                     return;
                 }
 
-                if (type == Types.STRING) {
+                if (isStringType()) {
                     String value = AttributeDeltaUtil.getAsStringValue(source);
                     replace.accept((T) value, dest);
 

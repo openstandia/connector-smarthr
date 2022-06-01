@@ -188,6 +188,7 @@ public interface SmartHRClient {
         public List<CustomField> custom_fields;
     }
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonIgnoreProperties(ignoreUnknown = true)
     class EmploymentType {
         public String id;
@@ -195,6 +196,7 @@ public interface SmartHRClient {
         public String preset_type;
     }
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonIgnoreProperties(ignoreUnknown = true)
     class Department {
         public String id;
@@ -204,6 +206,7 @@ public interface SmartHRClient {
         public Department parent;
     }
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonIgnoreProperties(ignoreUnknown = true)
     class JobTitle {
         public String id;
@@ -211,6 +214,7 @@ public interface SmartHRClient {
         public Integer rank;
     }
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonIgnoreProperties(ignoreUnknown = true)
     class CustomField {
         public String template_id;
@@ -226,12 +230,6 @@ public interface SmartHRClient {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    class SmartHRSchemaRepresentation {
-        public String name;
-        public List<CrewCustomField> fields;
-    }
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
     class CrewCustomField {
         public String id;
         public String name;
@@ -240,7 +238,7 @@ public interface SmartHRClient {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    class SmartHRErrorRepresentation {
+    class ErrorResponse {
         public int code;
         public String type;
         public String message;
@@ -256,17 +254,5 @@ public interface SmartHRClient {
         public String message;
         public String resource;
         public String field;
-    }
-
-    class PatchOperation {
-        final public String op;
-        final public String path;
-        final public String value;
-
-        public PatchOperation(String op, String path, String value) {
-            this.op = op;
-            this.path = path;
-            this.value = value;
-        }
     }
 }

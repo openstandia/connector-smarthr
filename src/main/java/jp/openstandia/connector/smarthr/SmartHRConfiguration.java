@@ -131,7 +131,7 @@ public class SmartHRConfiguration extends AbstractConfiguration {
         return defaultQueryPageSize;
     }
 
-    public void setDefaultQueryPageSize(Integer defaultQueryPageSize) {
+    public void setDefaultQueryPageSize(int defaultQueryPageSize) {
         this.defaultQueryPageSize = defaultQueryPageSize;
     }
 

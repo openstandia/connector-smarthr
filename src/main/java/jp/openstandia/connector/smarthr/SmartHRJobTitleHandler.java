@@ -56,16 +56,6 @@ public class SmartHRJobTitleHandler implements SmartHRObjectHandler {
         );
 
         // __NAME__
-        // Use __UID__.
-        sb.addName("job_title_id",
-                SchemaDefinition.Types.UUID,
-                SmartHRClient.JobTitle.class,
-                SmartHRClient.JobTitle.class,
-                (source, dest) -> dest.id = source,
-                (source) -> source.id,
-                REQUIRED, NOT_CREATABLE, NOT_UPDATABLE
-        );
-
         sb.add("name",
                 SchemaDefinition.Types.STRING,
                 SmartHRClient.JobTitle.class,
@@ -124,7 +114,7 @@ public class SmartHRJobTitleHandler implements SmartHRObjectHandler {
 
     @Override
     public void delete(Uid uid, OperationOptions options) {
-        client.deleteDepartment(uid, options);
+        client.deleteJobTitle(uid, options);
     }
 
     @Override

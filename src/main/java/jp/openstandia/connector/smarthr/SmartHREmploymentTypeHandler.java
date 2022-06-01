@@ -56,17 +56,7 @@ public class SmartHREmploymentTypeHandler implements SmartHRObjectHandler {
         );
 
         // __NAME__
-        // Use __UID__.
-        sb.addName("employment_type_id",
-                SchemaDefinition.Types.UUID,
-                SmartHRClient.EmploymentType.class,
-                SmartHRClient.EmploymentType.class,
-                (source, dest) -> dest.id = source,
-                (source) -> source.id,
-                REQUIRED, NOT_CREATABLE, NOT_UPDATABLE
-        );
-
-        sb.add("name",
+        sb.addName("name",
                 SchemaDefinition.Types.STRING,
                 SmartHRClient.EmploymentType.class,
                 SmartHRClient.EmploymentType.class,
@@ -117,7 +107,7 @@ public class SmartHREmploymentTypeHandler implements SmartHRObjectHandler {
 
     @Override
     public void delete(Uid uid, OperationOptions options) {
-        client.deleteDepartment(uid, options);
+        client.deleteEmploymentType(uid, options);
     }
 
     @Override
@@ -147,7 +137,7 @@ public class SmartHREmploymentTypeHandler implements SmartHRObjectHandler {
     @Override
     public int getAll(ResultsHandler resultsHandler, OperationOptions options, Set<String> attributesToGet,
                       boolean allowPartialAttributeValues, int pageSize, int pageOffset) {
-        return client.getDepartments((crew) -> resultsHandler.handle(toConnectorObject(schema, crew, attributesToGet, allowPartialAttributeValues)),
+        return client.getEmploymentTypes((crew) -> resultsHandler.handle(toConnectorObject(schema, crew, attributesToGet, allowPartialAttributeValues)),
                 options, attributesToGet, pageSize, pageOffset);
     }
 }

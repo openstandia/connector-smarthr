@@ -82,7 +82,7 @@ public class SmartHRDepartmentHandler implements SmartHRObjectHandler {
                 SmartHRClient.Department.class,
                 SmartHRClient.Department.class,
                 (source, dest) -> dest.parent_id = source,
-                (source) -> source.parent.id
+                (source) -> source.parent != null ? source.parent.id : null
         );
 
         LOGGER.ok("The constructed department schema");
