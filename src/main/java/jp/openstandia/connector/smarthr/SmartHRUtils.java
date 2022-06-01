@@ -40,12 +40,12 @@ public class SmartHRUtils {
      *
      * @param attrsToGetSet
      * @param attr
-     * @param isNotReturnByDefault
+     * @param isReturnByDefault
      * @return
      */
-    public static boolean shouldReturn(Set<String> attrsToGetSet, String attr, boolean isNotReturnByDefault) {
+    public static boolean shouldReturn(Set<String> attrsToGetSet, String attr, boolean isReturnByDefault) {
         if (attrsToGetSet == null) {
-            return !isNotReturnByDefault;
+            return isReturnByDefault;
         }
         return attrsToGetSet.contains(attr);
     }
@@ -93,6 +93,11 @@ public class SmartHRUtils {
                 attributesToGet.add(a);
             }
         }
+        if (attributesToGet == null) {
+            // Return default attributes
+            attributesToGet = schema.getReturnedByDefaultAttributesSet();
+        }
+
         return attributesToGet;
     }
 
