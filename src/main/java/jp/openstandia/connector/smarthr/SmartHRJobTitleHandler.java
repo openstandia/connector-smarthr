@@ -73,6 +73,22 @@ public class SmartHRJobTitleHandler implements SmartHRObjectHandler {
                 (source) -> source.rank
         );
 
+        // Metadata (readonly)
+        sb.add("created_at",
+                SchemaDefinition.Types.DATETIME_STRING,
+                SmartHRClient.Crew.class,
+                SmartHRClient.Crew.class,
+                null,
+                (source) -> source.created_at
+        );
+        sb.add("updated_at",
+                SchemaDefinition.Types.DATETIME_STRING,
+                SmartHRClient.Crew.class,
+                SmartHRClient.Crew.class,
+                null,
+                (source) -> source.updated_at
+        );
+
         LOGGER.ok("The constructed job_title schema");
 
         return sb;
