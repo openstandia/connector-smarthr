@@ -31,7 +31,7 @@ class SchemaTest extends AbstractTest {
         Schema schema = connector.schema();
 
         assertNotNull(schema);
-        assertEquals(4, schema.getObjectClassInfo().size());
+        assertEquals(2, schema.getObjectClassInfo().size());
 
         Optional<ObjectClassInfo> crew = schema.getObjectClassInfo().stream().filter(o -> o.is("crew")).findFirst();
         Optional<ObjectClassInfo> department = schema.getObjectClassInfo().stream().filter(o -> o.is("department")).findFirst();

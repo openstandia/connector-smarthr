@@ -22,6 +22,7 @@ import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.common.objects.Uid;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -49,7 +50,7 @@ public class MockClient implements SmartHRClient {
 
     @Override
     public List<CrewCustomField> schema() {
-        return null;
+        return Collections.emptyList();
     }
 
     @Override
