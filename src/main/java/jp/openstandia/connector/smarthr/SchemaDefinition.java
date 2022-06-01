@@ -23,13 +23,11 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static jp.openstandia.connector.smarthr.SmartHRUtils.shouldReturn;
 
@@ -554,37 +552,49 @@ public class SchemaDefinition {
                 }
 
                 if (type == Types.DATE_STRING) {
-                    List<T> valuesToAdd = source.getValuesToAdd().stream()
+                    List<T> valuesToAdd = safeStream(source.getValuesToAdd())
                             .map(v -> (ZonedDateTime) v)
                             .map(v -> (T) formatDate(v))
                             .collect(Collectors.toList());
-                    List<T> valuesToRemove = source.getValuesToRemove().stream()
+                    List<T> valuesToRemove = safeStream(source.getValuesToRemove())
                             .map(v -> (ZonedDateTime) v)
                             .map(v -> (T) formatDate(v))
                             .collect(Collectors.toList());
 
-                    add.accept(valuesToAdd, dest);
-                    remove.accept(valuesToRemove, dest);
+                    if (!valuesToAdd.isEmpty()) {
+                        add.accept(valuesToAdd, dest);
+                    }
+                    if (!valuesToRemove.isEmpty()) {
+                        remove.accept(valuesToRemove, dest);
+                    }
 
                 } else if (type == Types.DATETIME_STRING) {
-                    List<T> valuesToAdd = source.getValuesToAdd().stream()
+                    List<T> valuesToAdd = safeStream(source.getValuesToAdd())
                             .map(v -> (ZonedDateTime) v)
                             .map(v -> (T) formatDateTime(v))
                             .collect(Collectors.toList());
-                    List<T> valuesToRemove = source.getValuesToRemove().stream()
+                    List<T> valuesToRemove = safeStream(source.getValuesToRemove())
                             .map(v -> (ZonedDateTime) v)
                             .map(v -> (T) formatDateTime(v))
                             .collect(Collectors.toList());
 
-                    add.accept(valuesToAdd, dest);
-                    remove.accept(valuesToRemove, dest);
+                    if (!valuesToAdd.isEmpty()) {
+                        add.accept(valuesToAdd, dest);
+                    }
+                    if (!valuesToRemove.isEmpty()) {
+                        remove.accept(valuesToRemove, dest);
+                    }
 
                 } else {
-                    List<T> valuesToAdd = source.getValuesToAdd().stream().map(v -> (T) v).collect(Collectors.toList());
-                    List<T> valuesToRemove = source.getValuesToRemove().stream().map(v -> (T) v).collect(Collectors.toList());
+                    List<T> valuesToAdd = safeStream(source.getValuesToAdd()).map(v -> (T) v).collect(Collectors.toList());
+                    List<T> valuesToRemove = safeStream(source.getValuesToRemove()).map(v -> (T) v).collect(Collectors.toList());
 
-                    add.accept(valuesToAdd, dest);
-                    remove.accept(valuesToRemove, dest);
+                    if (!valuesToAdd.isEmpty()) {
+                        add.accept(valuesToAdd, dest);
+                    }
+                    if (!valuesToRemove.isEmpty()) {
+                        remove.accept(valuesToRemove, dest);
+                    }
                 }
 
             } else {
@@ -677,6 +687,13 @@ public class SchemaDefinition {
                 }
                 return AttributeBuilder.build(connectorName, value);
             }
+        }
+
+        private Stream<Object> safeStream(List<Object> list) {
+            if (list == null) {
+                return Collections.emptyList().stream();
+            }
+            return list.stream();
         }
     }
 }

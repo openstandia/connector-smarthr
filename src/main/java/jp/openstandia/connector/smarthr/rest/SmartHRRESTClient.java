@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static jp.openstandia.connector.smarthr.SmartHRCrewHandler.CREW_OBJECT_CLASS;
 import static jp.openstandia.connector.smarthr.SmartHRDepartmentHandler.DEPARTMENT_OBJECT_CLASS;
@@ -226,7 +227,11 @@ public class SmartHRRESTClient implements SmartHRClient {
                     break;
                 }
 
-                crews.stream().forEach(crew -> handler.handle(crew));
+                for (Crew crew : crews) {
+                    if (!handler.handle(crew) ) {
+                        break;
+                    }
+                }
 
                 if (pageOffset > 0) {
                     // If requested pageOffset, don't process paging
@@ -369,7 +374,11 @@ public class SmartHRRESTClient implements SmartHRClient {
                     break;
                 }
 
-                departments.stream().forEach(dept -> handler.handle(dept));
+                for (Department dept : departments) {
+                    if (!handler.handle(dept) ) {
+                        break;
+                    }
+                }
 
                 if (pageOffset > 0) {
                     // If requested pageOffset, don't process paging
@@ -448,23 +457,19 @@ public class SmartHRRESTClient implements SmartHRClient {
 
     @Override
     public EmploymentType getEmploymentType(Name name, OperationOptions options, Set<String> attributesToGet) {
-        try (Response response = get(getEmpTypeEndpointURL(configuration, name))) {
-            if (response.code() == 404) {
-                // Don't throw
-                return null;
+        // No API to fetch by name currently.
+        // We need to fetch all employment_type and filter them by name.
+        final AtomicReference<EmploymentType> result = new AtomicReference<>();
+        getEmploymentTypes(empType -> {
+            // Case sensitive
+            if (empType.name.equals(name.getNameValue())) {
+                result.set(empType);
+                return false;
             }
+            return true;
+        }, options, attributesToGet, configuration.getDefaultQueryPageSize(), 0);
 
-            if (response.code() != 200) {
-                throw new ConnectorIOException(String.format("Failed to get SmartHR employment_type: %s, statusCode: %d", name.getNameValue(), response.code()));
-            }
-
-            EmploymentType found = MAPPER.readValue(response.body().byteStream(), EmploymentType.class);
-
-            return found;
-
-        } catch (IOException e) {
-            throw new ConnectorIOException("Failed to call SmartHR get employment_type API", e);
-        }
+        return result.get();
     }
 
     @Override
@@ -497,14 +502,18 @@ public class SmartHRRESTClient implements SmartHRClient {
                 // Success
                 totalCount = getTotalCount(response);
 
-                List<EmploymentType> departments = MAPPER.readValue(response.body().byteStream(),
+                List<EmploymentType> employmentTypes = MAPPER.readValue(response.body().byteStream(),
                         new TypeReference<List<EmploymentType>>() {
                         });
-                if (departments.size() == 0) {
+                if (employmentTypes.size() == 0) {
                     break;
                 }
 
-                departments.stream().forEach(dept -> handler.handle(dept));
+                for (EmploymentType employmentType : employmentTypes) {
+                    if (!handler.handle(employmentType) ) {
+                        break;
+                    }
+                }
 
                 if (pageOffset > 0) {
                     // If requested pageOffset, don't process paging
@@ -583,23 +592,19 @@ public class SmartHRRESTClient implements SmartHRClient {
 
     @Override
     public JobTitle getJobTitle(Name name, OperationOptions options, Set<String> attributesToGet) {
-        try (Response response = get(getJobTitleEndpointURL(configuration, name))) {
-            if (response.code() == 404) {
-                // Don't throw
-                return null;
+        // No API to fetch by name currently.
+        // We need to fetch all job titles and filter them by name.
+        final AtomicReference<JobTitle> result = new AtomicReference<>();
+        getJobTitles(j -> {
+            // Case sensitive
+            if (j.name.equals(name.getNameValue())) {
+                result.set(j);
+                return false;
             }
+            return true;
+        }, options, attributesToGet, configuration.getDefaultQueryPageSize(), 0);
 
-            if (response.code() != 200) {
-                throw new ConnectorIOException(String.format("Failed to get SmartHR job_title: %s, statusCode: %d", name.getNameValue(), response.code()));
-            }
-
-            JobTitle found = MAPPER.readValue(response.body().byteStream(), JobTitle.class);
-
-            return found;
-
-        } catch (IOException e) {
-            throw new ConnectorIOException("Failed to call SmartHR get job_title API", e);
-        }
+        return result.get();
     }
 
     @Override
@@ -632,14 +637,18 @@ public class SmartHRRESTClient implements SmartHRClient {
                 // Success
                 totalCount = getTotalCount(response);
 
-                List<JobTitle> departments = MAPPER.readValue(response.body().byteStream(),
+                List<JobTitle> jobTitles = MAPPER.readValue(response.body().byteStream(),
                         new TypeReference<List<JobTitle>>() {
                         });
-                if (departments.size() == 0) {
+                if (jobTitles.size() == 0) {
                     break;
                 }
 
-                departments.stream().forEach(dept -> handler.handle(dept));
+                for (JobTitle jobTitle : jobTitles) {
+                    if (!handler.handle(jobTitle) ) {
+                        break;
+                    }
+                }
 
                 if (pageOffset > 0) {
                     // If requested pageOffset, don't process paging

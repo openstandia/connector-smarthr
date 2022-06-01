@@ -56,7 +56,7 @@ public class SmartHRJobTitleHandler implements SmartHRObjectHandler {
         );
 
         // __NAME__
-        sb.add("name",
+        sb.addName("name",
                 SchemaDefinition.Types.STRING,
                 SmartHRClient.JobTitle.class,
                 SmartHRClient.JobTitle.class,
