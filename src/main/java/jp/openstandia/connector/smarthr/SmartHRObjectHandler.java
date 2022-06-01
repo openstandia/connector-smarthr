@@ -13,6 +13,4 @@ public interface SmartHRObjectHandler {
     void delete(Uid uid, OperationOptions options);
 
     void query(SmartHRFilter filter, ResultsHandler resultsHandler, OperationOptions options);
-
-
 }

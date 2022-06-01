@@ -41,10 +41,10 @@ public class SmartHRFilterTranslator extends AbstractFilterTranslator<SmartHRFil
 
         if (attr instanceof Uid) {
             Uid uid = (Uid) attr;
-            SmartHRFilter nameFilter = new SmartHRFilter(uid.getName(),
+            SmartHRFilter uidFilter = new SmartHRFilter(uid.getName(),
                     SmartHRFilter.FilterType.EXACT_MATCH,
                     uid.getUidValue());
-            return nameFilter;
+            return uidFilter;
         }
         if (attr instanceof Name) {
             Name name = (Name) attr;
@@ -54,7 +54,7 @@ public class SmartHRFilterTranslator extends AbstractFilterTranslator<SmartHRFil
             return nameFilter;
         }
 
-        // SmartHR doesn't support searching by other attributes
+        // Not supported searching by other attributes
         return null;
     }
 }

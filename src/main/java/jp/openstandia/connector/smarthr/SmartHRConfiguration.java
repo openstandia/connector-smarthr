@@ -22,79 +22,50 @@ import org.identityconnectors.framework.spi.ConfigurationProperty;
 
 public class SmartHRConfiguration extends AbstractConfiguration {
 
-    private String smarthrURL;
-    private String smarthrDataSource;
-    private String apiUsername;
-    private GuardedString apiPassword;
+    private String smarthrEndpointURL;
+    private GuardedString apiAccessToken;
     private String httpProxyHost;
     private int httpProxyPort;
     private String httpProxyUser;
     private GuardedString httpProxyPassword;
-    private boolean suppressInvitationMessageEnabled = true;
+    private int queryPageSize;
 
     @ConfigurationProperty(
             order = 1,
             displayMessageKey = "SmartHR API URL",
-            helpMessageKey = "SmartHR API URL which is connected from this connector. e.g. https://smarthr.example.com/smarthr/api",
+            helpMessageKey = "SmartHR API URL which is connected from this connector." +
+                    " e.g. https://<your-tenant-id>.smarthr.jp/api or https://<your-sandbox-tenant-id>.daruma.space/api",
             required = true,
             confidential = false)
     public String getSmartHRURL() {
-        if (smarthrURL != null && !smarthrURL.endsWith("/")) {
-            return smarthrURL + "/";
+        if (smarthrEndpointURL != null && !smarthrEndpointURL.endsWith("/")) {
+            return smarthrEndpointURL + "/";
         }
-        return smarthrURL;
+        return smarthrEndpointURL;
     }
 
     public void setSmartHRURL(String smarthrURL) {
-        this.smarthrURL = smarthrURL;
+        this.smarthrEndpointURL = smarthrURL;
     }
 
     @ConfigurationProperty(
             order = 2,
-            displayMessageKey = "SmartHR Data source",
-            helpMessageKey = "SmartHR Data source which is connected from this connector. e.g. postgresql-shared",
+            displayMessageKey = "SmartHR API Access Token",
+            helpMessageKey = "Access token for the API authentication.",
             required = true,
-            confidential = false)
-    public String getSmartHRDataSource() {
-        return smarthrDataSource;
+            confidential = true)
+    public GuardedString getAPIAccessToken() {
+        return apiAccessToken;
     }
 
-    public void setSmartHRDataSource(String smarthrDataSource) {
-        this.smarthrDataSource = smarthrDataSource;
+    public void setAPIAccessToken(GuardedString apiAccessToken) {
+        this.apiAccessToken = apiAccessToken;
     }
 
     @ConfigurationProperty(
             order = 3,
-            displayMessageKey = "SmartHR API Username",
-            helpMessageKey = "Username for the API authentication.",
-            required = true,
-            confidential = false)
-    public String getApiUsername() {
-        return apiUsername;
-    }
-
-    public void setApiUsername(String apiUsername) {
-        this.apiUsername = apiUsername;
-    }
-
-    @ConfigurationProperty(
-            order = 4,
-            displayMessageKey = "SmartHR API Password",
-            helpMessageKey = "Password for the API authentication.",
-            required = true,
-            confidential = false)
-    public GuardedString getApiPassword() {
-        return apiPassword;
-    }
-
-    public void setApiPassword(GuardedString apiPassword) {
-        this.apiPassword = apiPassword;
-    }
-
-    @ConfigurationProperty(
-            order = 5,
             displayMessageKey = "HTTP Proxy Host",
-            helpMessageKey = "Hostname for the HTTP Proxy",
+            helpMessageKey = "Hostname for the HTTP Proxy.",
             required = false,
             confidential = false)
     public String getHttpProxyHost() {
@@ -106,9 +77,9 @@ public class SmartHRConfiguration extends AbstractConfiguration {
     }
 
     @ConfigurationProperty(
-            order = 6,
+            order = 4,
             displayMessageKey = "HTTP Proxy Port",
-            helpMessageKey = "Port for the HTTP Proxy",
+            helpMessageKey = "Port for the HTTP Proxy.",
             required = false,
             confidential = false)
     public int getHttpProxyPort() {
@@ -120,9 +91,9 @@ public class SmartHRConfiguration extends AbstractConfiguration {
     }
 
     @ConfigurationProperty(
-            order = 7,
+            order = 5,
             displayMessageKey = "HTTP Proxy User",
-            helpMessageKey = "Username for the HTTP Proxy Authentication",
+            helpMessageKey = "Username for the HTTP Proxy Authentication.",
             required = false,
             confidential = false)
     public String getHttpProxyUser() {
@@ -134,9 +105,9 @@ public class SmartHRConfiguration extends AbstractConfiguration {
     }
 
     @ConfigurationProperty(
-            order = 8,
+            order = 6,
             displayMessageKey = "HTTP Proxy Password",
-            helpMessageKey = "Password for the HTTP Proxy Authentication",
+            helpMessageKey = "Password for the HTTP Proxy Authentication.",
             required = false,
             confidential = true)
     public GuardedString getHttpProxyPassword() {
@@ -147,18 +118,26 @@ public class SmartHRConfiguration extends AbstractConfiguration {
         this.httpProxyPassword = httpProxyPassword;
     }
 
+    @ConfigurationProperty(
+            order = 7,
+            displayMessageKey = "Query Page Size",
+            helpMessageKey = "Number of results to return per page.",
+            required = false,
+            confidential = false)
+    public int getQueryPageSize() {
+        return queryPageSize;
+    }
+
+    public void setQueryPageSize(int queryPageSize) {
+        this.queryPageSize = queryPageSize;
+    }
+
     @Override
     public void validate() {
-        if (smarthrURL == null) {
-            throw new ConfigurationException("SmartHR URL is required");
+        if (smarthrEndpointURL == null) {
+            throw new ConfigurationException("SmartHR Endpoint URL is required");
         }
-        if (smarthrDataSource == null) {
-            throw new ConfigurationException("SmartHR Data source is required");
-        }
-        if (apiUsername == null) {
-            throw new ConfigurationException("SmartHR API Username is required");
-        }
-        if (apiPassword == null) {
+        if (apiAccessToken == null) {
             throw new ConfigurationException("SmartHR API Password is required");
         }
     }

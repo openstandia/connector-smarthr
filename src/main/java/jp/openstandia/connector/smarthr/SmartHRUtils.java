@@ -28,7 +28,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 /**
  * Provides utility methods
@@ -36,6 +35,19 @@ import java.util.stream.Collectors;
  * @author Hiroyuki Wada
  */
 public class SmartHRUtils {
+
+    public class ObjectClassInfoBuilderWrapper {
+        private final ObjectClassInfoBuilder builder;
+
+        public ObjectClassInfoBuilderWrapper(ObjectClassInfoBuilder builder) {
+            this.builder = builder;
+        }
+
+        public ObjectClassInfoBuilderWrapper addRequired() {
+
+        }
+
+    }
 
     public static ZonedDateTime toZoneDateTime(Instant instant) {
         ZoneId zone = ZoneId.systemDefault();
@@ -223,7 +235,7 @@ public class SmartHRUtils {
      * @param options
      * @return
      */
-    public static Set<String> createFullAttributesToGet(Map<String, AttributeInfo> schema, OperationOptions options) {
+    public static Set<String> createFullAttributesToGet(SchemaDefinition schema, OperationOptions options) {
         Set<String> attributesToGet = null;
         if (shouldReturnDefaultAttributes(options)) {
             attributesToGet = new HashSet<>();
@@ -240,10 +252,7 @@ public class SmartHRUtils {
         return attributesToGet;
     }
 
-    private static Set<String> toReturnedByDefaultAttributesSet(Map<String, AttributeInfo> schema) {
-        return schema.entrySet().stream()
-                .filter(entry -> entry.getValue().isReturnedByDefault())
-                .map(entry -> entry.getKey())
-                .collect(Collectors.toSet());
+    private static Set<String> toReturnedByDefaultAttributesSet(SchemaDefinition schema) {
+        return schema.getReturnedByDefaultAttributesSet();
     }
 }

@@ -24,11 +24,11 @@ import java.util.Set;
 
 import static jp.openstandia.connector.smarthr.SmartHRUtils.*;
 
-public class SmartHRConnectionGroupHandler implements SmartHRObjectHandler {
+public class SmartHRDepartmentHandler implements SmartHRObjectHandler {
 
-    public static final ObjectClass CONNECTION_GROUP_OBJECT_CLASS = new ObjectClass("ConnectionGroup");
+    public static final ObjectClass CONNECTION_GROUP_OBJECT_CLASS = new ObjectClass("department");
 
-    private static final Log LOGGER = Log.getLog(SmartHRConnectionGroupHandler.class);
+    private static final Log LOGGER = Log.getLog(SmartHRDepartmentHandler.class);
 
     // Unique, auto-generated and unchangeable within the smarthr server
     private static final String ATTR_IDENTIFIER = "identifier";
@@ -49,14 +49,14 @@ public class SmartHRConnectionGroupHandler implements SmartHRObjectHandler {
     private final SmartHRSchema schema;
     private final SmartHRAssociationHandler associationHandler;
 
-    public SmartHRConnectionGroupHandler(SmartHRConfiguration configuration, SmartHRClient client, SmartHRSchema schema) {
+    public SmartHRDepartmentHandler(SmartHRConfiguration configuration, SmartHRClient client, SchemaDefinition schema) {
         this.configuration = configuration;
         this.client = client;
         this.schema = schema;
         this.associationHandler = new SmartHRAssociationHandler(configuration, client);
     }
 
-    public static ObjectClassInfo createSchema() {
+    public static SchemaDefinition.Builder createSchema() {
         ObjectClassInfoBuilder builder = new ObjectClassInfoBuilder();
         builder.setType(CONNECTION_GROUP_OBJECT_CLASS.getObjectClassValue());
 

@@ -17,14 +17,11 @@ package jp.openstandia.connector.smarthr.testutil;
 
 import jp.openstandia.connector.smarthr.SmartHRClient;
 import jp.openstandia.connector.smarthr.SmartHRQueryHandler;
-import jp.openstandia.connector.smarthr.SmartHRSchema;
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
-import org.identityconnectors.framework.common.exceptions.UnknownUidException;
-import org.identityconnectors.framework.common.objects.*;
+import org.identityconnectors.framework.common.objects.OperationOptions;
+import org.identityconnectors.framework.common.objects.Uid;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class MockClient implements SmartHRClient {
@@ -50,18 +47,8 @@ public class MockClient implements SmartHRClient {
     }
 
     @Override
-    public boolean auth() {
-        return false;
-    }
-
-    @Override
-    public String getAuthToken() {
+    public List<CrewCustomField> schema() {
         return null;
-    }
-
-    @Override
-    public List<SmartHRSchemaRepresentation> schema() {
-        return new ArrayList<>();
     }
 
     @Override
@@ -70,192 +57,53 @@ public class MockClient implements SmartHRClient {
     }
 
     @Override
-    public Uid createUser(SmartHRSchema schema, Set<Attribute> createAttributes) throws AlreadyExistsException {
+    public Uid createCrew(Crew newCrew) throws AlreadyExistsException {
         return null;
     }
 
     @Override
-    public void updateUser(SmartHRSchema schema, Uid uid, Set<AttributeDelta> modifications, OperationOptions options) throws UnknownUidException {
-
-    }
-
-    @Override
-    public void deleteUser(SmartHRSchema schema, Uid uid, OperationOptions options) throws UnknownUidException {
-
-    }
-
-    @Override
-    public void getUsers(SmartHRSchema schema, SmartHRQueryHandler<SmartHRUserRepresentation> handler, OperationOptions options, Set<String> attributesToGet, int queryPageSize) {
-
-    }
-
-    @Override
-    public SmartHRUserRepresentation getUser(SmartHRSchema schema, Uid uid, OperationOptions options, Set<String> attributesToGet) {
+    public Crew getCrew(Uid uid, OperationOptions options, Set<String> attributesToGet) {
         return null;
     }
 
     @Override
-    public void getUserGroupsForUser(String username, SmartHRQueryHandler<String> handler) {
+    public void updateCrew(Uid uid, Crew update) {
 
     }
 
     @Override
-    public void assignUserGroupsToUser(Uid username, List<String> addGroups, List<String> removeGroups) {
+    public void deleteCrew(Uid uid, OperationOptions options) {
 
     }
 
     @Override
-    public Uid createUserGroup(SmartHRSchema schema, Set<Attribute> createAttributes) throws AlreadyExistsException {
+    public void getCrews(SmartHRQueryHandler<Crew> handler, OperationOptions options, Set<String> attributesToGet, int queryPageSize) {
+
+    }
+
+    @Override
+    public Uid createDepartment(Crew newCrew) throws AlreadyExistsException {
         return null;
     }
 
     @Override
-    public void updateUserGroup(SmartHRSchema schema, Uid uid, Set<AttributeDelta> modifications, OperationOptions options) throws UnknownUidException {
-
-    }
-
-    @Override
-    public void deleteUserGroup(SmartHRSchema schema, Uid uid, OperationOptions options) throws UnknownUidException {
-
-    }
-
-    @Override
-    public void getUserGroups(SmartHRSchema schema, SmartHRQueryHandler<SmartHRUserGroupRepresentation> handler, OperationOptions options, Set<String> attributesToGet, int queryPageSize) {
-
-    }
-
-    @Override
-    public SmartHRUserGroupRepresentation getUserGroup(SmartHRSchema schema, Uid uid, OperationOptions options, Set<String> attributesToGet) {
+    public Crew getDepartment(Uid uid, OperationOptions options, Set<String> attributesToGet) {
         return null;
     }
 
     @Override
-    public void getUsersForUserGroup(String groupName, SmartHRQueryHandler<String> handler) {
+    public void updateDepartment(Uid uid, Crew update) {
 
     }
 
     @Override
-    public void assignUsersToUserGroup(Uid groupName, List<String> addUsers, List<String> removeUsers) {
+    public void deleteDepartment(Uid uid, OperationOptions options) {
 
     }
 
     @Override
-    public void getUserGroupsForUserGroup(String groupName, SmartHRQueryHandler<String> handler) {
+    public void getDepartments(SmartHRQueryHandler<Crew> handler, OperationOptions options, Set<String> attributesToGet, int queryPageSize) {
 
     }
 
-    @Override
-    public void assignUserGroupsToUserGroup(Uid groupName, List<String> addGroups, List<String> removeGroups) {
-
-    }
-
-    @Override
-    public void assignUserPermissionsToUser(Uid userUid, List<String> addPermissions, List<String> removePermissions) {
-
-    }
-
-    @Override
-    public void assignSystemPermissionsToUser(Uid userUid, List<String> addPermissions, List<String> removePermissions) {
-
-    }
-
-    @Override
-    public void assignSystemPermissionsToUserGroup(Uid groupUid, List<String> addPermissions, List<String> removePermissions) {
-
-    }
-
-    @Override
-    public SmartHRPermissionRepresentation getPermissionsForUser(String username) {
-        return null;
-    }
-
-    @Override
-    public SmartHRPermissionRepresentation getPermissionsForUserGroup(String groupName) {
-        return null;
-    }
-
-    @Override
-    public Uid createConnection(SmartHRSchema schema, Set<Attribute> attributes) {
-        return null;
-    }
-
-    @Override
-    public void updateConnection(SmartHRSchema schema, Uid uid, Set<AttributeDelta> modifications, OperationOptions options) {
-
-    }
-
-    @Override
-    public void deleteConnection(SmartHRSchema schema, Uid uid, OperationOptions options) {
-
-    }
-
-    @Override
-    public void getConnections(SmartHRSchema schema, SmartHRQueryHandler<SmartHRConnectionRepresentation> handler, OperationOptions options, Set<String> attributesToGet, int queryPageSize) {
-
-    }
-
-    @Override
-    public SmartHRConnectionRepresentation getConnection(SmartHRSchema schema, Uid uid, OperationOptions options, Set<String> attributesToGet) {
-        return null;
-    }
-
-    @Override
-    public SmartHRConnectionRepresentation getConnection(SmartHRSchema schema, Name name, OperationOptions options, Set<String> attributesToGet) {
-        return null;
-    }
-
-    @Override
-    public Map<String, String> getParameters(String identifier) {
-        return null;
-    }
-
-    @Override
-    public void assignConnectionsToUser(Uid userUid, List<String> addConnections, List<String> removeConnections) {
-
-    }
-
-    @Override
-    public void assignConnectionsToUserGroup(Uid userGroupUid, List<String> addConnections, List<String> removeConnections) {
-
-    }
-
-    @Override
-    public Uid createConnectionGroup(SmartHRSchema schema, Set<Attribute> attributes) {
-        return null;
-    }
-
-    @Override
-    public void updateConnectionGroup(SmartHRSchema schema, Uid uid, Set<AttributeDelta> modifications, OperationOptions options) {
-
-    }
-
-    @Override
-    public void deleteConnectionGroup(SmartHRSchema schema, Uid uid, OperationOptions options) {
-
-    }
-
-    @Override
-    public void getConnectionGroups(SmartHRSchema schema, SmartHRQueryHandler<SmartHRConnectionGroupRepresentation> handler, OperationOptions options, Set<String> attributesToGet, int queryPageSize) {
-
-    }
-
-    @Override
-    public SmartHRConnectionGroupRepresentation getConnectionGroup(SmartHRSchema schema, Uid uid, OperationOptions options, Set<String> attributesToGet) {
-        return null;
-    }
-
-    @Override
-    public SmartHRConnectionGroupRepresentation getConnectionGroup(SmartHRSchema schema, Name name, OperationOptions options, Set<String> attributesToGet) {
-        return null;
-    }
-
-    @Override
-    public void assignConnectionGroupsToUser(Uid userUid, List<String> addConnectionGroups, List<String> removeConnectionGroups) {
-
-    }
-
-    @Override
-    public void assignConnectionGroupsToUserGroup(Uid userGroupUid, List<String> addConnectionGroups, List<String> removeConnectionGroups) {
-
-    }
 }

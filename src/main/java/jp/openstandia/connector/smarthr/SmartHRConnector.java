@@ -19,6 +19,7 @@ import jp.openstandia.connector.smarthr.rest.SmartHRRESTClient;
 import okhttp3.*;
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
+import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
@@ -32,17 +33,13 @@ import org.identityconnectors.framework.spi.PoolableConnector;
 import org.identityconnectors.framework.spi.operations.*;
 
 import java.io.IOException;
-import java.net.*;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import static jp.openstandia.connector.smarthr.SmartHRConnectionGroupHandler.CONNECTION_GROUP_OBJECT_CLASS;
-import static jp.openstandia.connector.smarthr.SmartHRConnectionHandler.CONNECTION_OBJECT_CLASS;
-import static jp.openstandia.connector.smarthr.SmartHRUserGroupHandler.USER_GROUP_OBJECT_CLASS;
-import static jp.openstandia.connector.smarthr.SmartHRUserHandler.USER_OBJECT_CLASS;
-
-@ConnectorClass(configurationClass = SmartHRConfiguration.class, displayNameKey = "NRI OpenStandia SmartHR Connector")
+@ConnectorClass(configurationClass = SmartHRConfiguration.class, displayNameKey = "SmartHR Connector")
 public class SmartHRConnector implements PoolableConnector, CreateOp, UpdateDeltaOp, DeleteOp, SchemaOp, TestOp, SearchOp<SmartHRFilter>, InstanceNameAware {
 
     private static final Log LOG = Log.getLog(SmartHRConnector.class);
@@ -76,12 +73,7 @@ public class SmartHRConnector implements PoolableConnector, CreateOp, UpdateDelt
         okHttpBuilder.connectTimeout(20, TimeUnit.SECONDS);
         okHttpBuilder.readTimeout(15, TimeUnit.SECONDS);
         okHttpBuilder.writeTimeout(15, TimeUnit.SECONDS);
-        okHttpBuilder.addInterceptor(getInterceptor());
-
-        // Setup cookie manager for multiple smarthr nodes with sticky session cookie
-        CookieManager cookieManager = new CookieManager();
-        cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ORIGINAL_SERVER);
-        okHttpBuilder.cookieJar(new JavaNetCookieJar(cookieManager));
+        okHttpBuilder.addInterceptor(getInterceptor(configuration.getAPIAccessToken()));
 
         // Setup http proxy aware httpClient
         if (StringUtil.isNotEmpty(configuration.getHttpProxyHost())) {
@@ -104,18 +96,20 @@ public class SmartHRConnector implements PoolableConnector, CreateOp, UpdateDelt
 
         client = new SmartHRRESTClient(instanceName, configuration, httpClient);
 
-        // Verify we can access the smarthr server
-        client.auth();
+        // Verify we can access the SmartHR API
+        client.test();
     }
 
-    private Interceptor getInterceptor() {
+    private Interceptor getInterceptor(GuardedString accessToken) {
         return new Interceptor() {
             @Override
             public Response intercept(Chain chain) throws IOException {
-                Request newRequest = chain.request().newBuilder()
-                        .addHeader("Accept", "application/json")
-                        .build();
-                return chain.proceed(newRequest);
+                Request.Builder builder = chain.request().newBuilder()
+                        .addHeader("Accept", "application/json");
+                accessToken.access(c -> {
+                    builder.addHeader("Authorization", "Bearer " + String.valueOf(c));
+                });
+                return chain.proceed(builder.build());
             }
         };
     }
@@ -123,7 +117,7 @@ public class SmartHRConnector implements PoolableConnector, CreateOp, UpdateDelt
     @Override
     public Schema schema() {
         try {
-            List<SmartHRClient.SmartHRSchemaRepresentation> smarthrSchema = this.client.schema();
+            List<SmartHRClient.CrewCustomField> smarthrSchema = this.client.schema();
             cachedSchema = new SmartHRSchema(configuration, client, smarthrSchema);
             return cachedSchema.schema;
 
@@ -132,34 +126,23 @@ public class SmartHRConnector implements PoolableConnector, CreateOp, UpdateDelt
         }
     }
 
-    private SmartHRSchema geSchema() {
-        // Load schema map if it's not loaded yet
-        if (cachedSchema == null) {
-            schema();
-        }
-        return cachedSchema;
-    }
-
-    protected SmartHRObjectHandler createSmartHRObjectHandler(ObjectClass objectClass) {
+    private SmartHRObjectHandler getSchemaHandler(ObjectClass objectClass) {
         if (objectClass == null) {
             throw new InvalidAttributeValueException("ObjectClass value not provided");
         }
 
-        if (objectClass.equals(USER_OBJECT_CLASS)) {
-            return new SmartHRUserHandler(configuration, client, geSchema());
+        // Load schema map if it's not loaded yet
+        if (cachedSchema == null) {
+            schema();
+        }
 
-        } else if (objectClass.equals(USER_GROUP_OBJECT_CLASS)) {
-            return new SmartHRUserGroupHandler(configuration, client, geSchema());
+        SmartHRObjectHandler handler = cachedSchema.getSchemaHandler(objectClass);
 
-        } else if (objectClass.equals(CONNECTION_OBJECT_CLASS)) {
-            return new SmartHRConnectionHandler(configuration, client, geSchema());
-
-        } else if (objectClass.equals(CONNECTION_GROUP_OBJECT_CLASS)) {
-            return new SmartHRConnectionGroupHandler(configuration, client, geSchema());
-
-        } else {
+        if (handler == null) {
             throw new InvalidAttributeValueException("Unsupported object class " + objectClass);
         }
+
+        return handler;
     }
 
     @Override
@@ -169,7 +152,7 @@ public class SmartHRConnector implements PoolableConnector, CreateOp, UpdateDelt
         }
 
         try {
-            return createSmartHRObjectHandler(objectClass).create(createAttributes);
+            return getSchemaHandler(objectClass).create(createAttributes);
 
         } catch (RuntimeException e) {
             throw processRuntimeException(e);
@@ -183,7 +166,7 @@ public class SmartHRConnector implements PoolableConnector, CreateOp, UpdateDelt
         }
 
         try {
-            return createSmartHRObjectHandler(objectClass).updateDelta(uid, modifications, options);
+            return getSchemaHandler(objectClass).updateDelta(uid, modifications, options);
 
         } catch (RuntimeException e) {
             throw processRuntimeException(e);
@@ -197,7 +180,7 @@ public class SmartHRConnector implements PoolableConnector, CreateOp, UpdateDelt
         }
 
         try {
-            createSmartHRObjectHandler(objectClass).delete(uid, options);
+            getSchemaHandler(objectClass).delete(uid, options);
 
         } catch (RuntimeException e) {
             throw processRuntimeException(e);
@@ -211,7 +194,7 @@ public class SmartHRConnector implements PoolableConnector, CreateOp, UpdateDelt
 
     @Override
     public void executeQuery(ObjectClass objectClass, SmartHRFilter filter, ResultsHandler resultsHandler, OperationOptions options) {
-        createSmartHRObjectHandler(objectClass).query(filter, resultsHandler, options);
+        getSchemaHandler(objectClass).query(filter, resultsHandler, options);
     }
 
     @Override
@@ -245,12 +228,15 @@ public class SmartHRConnector implements PoolableConnector, CreateOp, UpdateDelt
             // Write error log because IDM might not write full stack trace
             // It's hard to debug the error
             if (e instanceof AlreadyExistsException) {
-                LOG.warn(e, "Detect smarthr connector error");
+                LOG.warn(e, "Detected SmartHR connector error");
             } else {
-                LOG.error(e, "Detect smarthr connector error");
+                LOG.error(e, "Detected SmartHR connector error");
             }
             return (ConnectorException) e;
         }
+
+        LOG.error(e, "Detected SmartHR connector unexpected error");
+
         return new ConnectorIOException(e);
     }
 }
