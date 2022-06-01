@@ -27,13 +27,13 @@ import static jp.openstandia.connector.smarthr.SchemaDefinition.SchemaOption.*;
 
 public class SmartHRDepartmentHandler implements SmartHRObjectHandler {
 
-    public static final ObjectClass CONNECTION_GROUP_OBJECT_CLASS = new ObjectClass("department");
+    public static final ObjectClass DEPARTMENT_OBJECT_CLASS = new ObjectClass("department");
 
     private static final Log LOGGER = Log.getLog(SmartHRDepartmentHandler.class);
 
-    // Unique, auto-generated and unchangeable within the smarthr server
+    // Unique, auto-generated and unchangeable within the SmartHR tenant
     private static final String ATTR_IDENTIFIER = "identifier";
-    // Unique and changeable within the smarthr server
+    // Unique and changeable within the SmartHR tenant
     // This is composed by 'parentIdentifier' and 'name' to make it unique
     // The format is <parentIdentifier>/<name>
     private static final String ATTR_NAME_WITH_PARENT_IDENTIFIER = "name-with-parentIdentifier";
@@ -56,7 +56,7 @@ public class SmartHRDepartmentHandler implements SmartHRObjectHandler {
     }
 
     public static SchemaDefinition.Builder createSchema() {
-        SchemaDefinition.Builder sb = SchemaDefinition.newBuilder(CONNECTION_GROUP_OBJECT_CLASS);
+        SchemaDefinition.Builder sb = SchemaDefinition.newBuilder(DEPARTMENT_OBJECT_CLASS);
 
         // __UID__
         // The id for the crew. Must be unique within the SmartHR tenant and unchangeable.
@@ -108,51 +108,54 @@ public class SmartHRDepartmentHandler implements SmartHRObjectHandler {
     @Override
     public Set<AttributeDelta> updateDelta(Uid uid, Set<AttributeDelta> modifications, OperationOptions options) {
         // To apply diff for multiple values, we need to fetch the current object
-        SmartHRClient.Crew current = client.getCrew(uid, options, null);
+        SmartHRClient.Department current = client.getDepartment(uid, options, null);
 
         if (current == null) {
             throw new UnknownUidException(String.format("Not found crew. id: %s", uid.getUidValue()));
         }
 
-        SmartHRClient.Crew dest = new SmartHRClient.Crew();
-        dest.department_ids = current.departments.stream().map(d -> d.id).collect(Collectors.toList());
+        SmartHRClient.Department dest = new SmartHRClient.Department();
 
         schema.applyDelta(modifications, dest);
 
-        client.updateCrew(uid, dest);
+        client.updateDepartment(uid, dest);
 
         return null;
     }
 
     @Override
     public void delete(Uid uid, OperationOptions options) {
-        client.deleteCrew(uid, options);
+        client.deleteDepartment(uid, options);
     }
 
     @Override
-    public void getByUid(Uid uid, ResultsHandler resultsHandler, OperationOptions options, Set<String> attributesToGet,
+    public int getByUid(Uid uid, ResultsHandler resultsHandler, OperationOptions options, Set<String> attributesToGet,
+                        boolean allowPartialAttributeValues, int pageSize, int pageOffset) {
+        SmartHRClient.Department dept = client.getDepartment(uid, options, attributesToGet);
+
+        if (dept != null) {
+            resultsHandler.handle(toConnectorObject(schema, dept, attributesToGet, allowPartialAttributeValues));
+            return 1;
+        }
+        return 0;
+    }
+
+    @Override
+    public int getByName(Name name, ResultsHandler resultsHandler, OperationOptions options, Set<String> attributesToGet,
                          boolean allowPartialAttributeValues, int pageSize, int pageOffset) {
-        SmartHRClient.Crew user = client.getCrew(uid, options, attributesToGet);
+        SmartHRClient.Department dept = client.getDepartment(name, options, attributesToGet);
 
-        if (user != null) {
-            resultsHandler.handle(toConnectorObject(schema, user, attributesToGet, allowPartialAttributeValues));
+        if (dept != null) {
+            resultsHandler.handle(toConnectorObject(schema, dept, attributesToGet, allowPartialAttributeValues));
+            return 1;
         }
+        return 0;
     }
 
     @Override
-    public void getByName(Name name, ResultsHandler resultsHandler, OperationOptions options, Set<String> attributesToGet,
-                          boolean allowPartialAttributeValues, int pageSize, int pageOffset) {
-        SmartHRClient.Crew crew = client.getCrew(name, options, attributesToGet);
-
-        if (crew != null) {
-            resultsHandler.handle(toConnectorObject(schema, crew, attributesToGet, allowPartialAttributeValues));
-        }
-    }
-
-    @Override
-    public void getAll(ResultsHandler resultsHandler, OperationOptions options, Set<String> attributesToGet,
-                       boolean allowPartialAttributeValues, int pageSize, int pageOffset) {
-        client.getCrews((crew) -> resultsHandler.handle(toConnectorObject(schema, crew, attributesToGet, allowPartialAttributeValues)),
+    public int getAll(ResultsHandler resultsHandler, OperationOptions options, Set<String> attributesToGet,
+                      boolean allowPartialAttributeValues, int pageSize, int pageOffset) {
+        return client.getDepartments((crew) -> resultsHandler.handle(toConnectorObject(schema, crew, attributesToGet, allowPartialAttributeValues)),
                 options, attributesToGet, pageSize, pageOffset);
     }
 }

@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static jp.openstandia.connector.smarthr.SmartHRCrewHandler.CREW_OBJECT_CLASS;
+import static jp.openstandia.connector.smarthr.SmartHRDepartmentHandler.DEPARTMENT_OBJECT_CLASS;
 
 public class SmartHRRESTClient implements SmartHRClient {
 
@@ -193,7 +194,7 @@ public class SmartHRRESTClient implements SmartHRClient {
     }
 
     @Override
-    public void getCrews(SmartHRQueryHandler<Crew> handler, OperationOptions options, Set<String> attributesToGet, int queryPageSize, int pageOffset) {
+    public int getCrews(SmartHRQueryHandler<Crew> handler, OperationOptions options, Set<String> attributesToGet, int queryPageSize, int pageOffset) {
         // Start from 1 in SmartHR
         int page = 1;
         if (pageOffset > 0) {
@@ -204,6 +205,8 @@ public class SmartHRRESTClient implements SmartHRClient {
         Map<String, String> params = new HashMap<>();
         params.put("sort", "emp_code");
 
+        int totalCount;
+
         // If no requested pageOffset, fetch all pages
         while (true) {
             try (Response response = get(getCrewEndpointURL(configuration), params, page, queryPageSize)) {
@@ -212,6 +215,8 @@ public class SmartHRRESTClient implements SmartHRClient {
                 }
 
                 // Success
+                totalCount = getTotalCount(response);
+
                 List<Crew> crews = MAPPER.readValue(response.body().byteStream(),
                         new TypeReference<List<Crew>>() {
                         });
@@ -226,7 +231,6 @@ public class SmartHRRESTClient implements SmartHRClient {
                     break;
                 }
 
-                int totalCount = getTotalCount(response);
                 page = getPage(response);
                 queryPageSize = getPerPage(response);
 
@@ -241,33 +245,151 @@ public class SmartHRRESTClient implements SmartHRClient {
                 throw new ConnectorIOException("Failed to call SmartHR get crews API", e);
             }
         }
+
+        return totalCount;
     }
 
     // Department
 
     @Override
-    public Uid createDepartment(Crew newCrew) throws AlreadyExistsException {
-        return null;
+    public Uid createDepartment(Department newDept) throws AlreadyExistsException {
+        try (Response response = post(getDeptEndpointURL(configuration), newDept)) {
+            if (response.code() == 400) {
+                SmartHRErrorRepresentation error = MAPPER.readValue(response.body().byteStream(), SmartHRErrorRepresentation.class);
+                if (error.isAlreadyExists()) {
+                    throw new AlreadyExistsException(String.format("Department '%s' already exists.", newDept.code));
+                }
+                throw new InvalidAttributeValueException(String.format("Bad request when creating a department. emp_code: %s", newDept.code));
+            }
+
+            if (response.code() != 201) {
+                throw new ConnectorIOException(String.format("Failed to create SmartHR department: %s, statusCode: %d", newDept.code, response.code()));
+            }
+
+            Department created = MAPPER.readValue(response.body().byteStream(), Department.class);
+
+            // Created
+            if (created.code != null) {
+                return new Uid(created.id, new Name(created.code));
+            }
+            // Use "id" as __NAME__
+            return new Uid(created.id, new Name(created.id));
+
+        } catch (IOException e) {
+            throw new ConnectorIOException("Failed to call SmartHR create department API", e);
+        }
     }
 
     @Override
-    public Crew getDepartment(Uid uid, OperationOptions options, Set<String> attributesToGet) {
-        return null;
+    public Department getDepartment(Uid uid, OperationOptions options, Set<String> attributesToGet) {
+        try (Response response = get(getDeptEndpointURL(configuration, uid))) {
+            if (response.code() == 404) {
+                // Don't throw
+                return null;
+            }
+
+            if (response.code() != 200) {
+                throw new ConnectorIOException(String.format("Failed to get SmartHR department: %s, statusCode: %d", uid.getUidValue(), response.code()));
+            }
+
+            Department found = MAPPER.readValue(response.body().byteStream(), Department.class);
+
+            return found;
+
+        } catch (IOException e) {
+            throw new ConnectorIOException("Failed to call SmartHR get department API", e);
+        }
     }
 
     @Override
-    public void updateDepartment(Uid uid, Crew update) {
+    public Department getDepartment(Name name, OperationOptions options, Set<String> attributesToGet) {
+        Map<String, String> params = new HashMap<>();
+        params.put("code", name.getNameValue());
 
+        try (Response response = get(getDeptEndpointURL(configuration), params, 1, 1)) {
+            if (response.code() != 200) {
+                throw new ConnectorIOException(String.format("Failed to get SmartHR department by code. statusCode: %d", response.code()));
+            }
+
+            // Success
+            List<Department> dept = MAPPER.readValue(response.body().byteStream(),
+                    new TypeReference<List<Department>>() {
+                    });
+            if (dept.size() == 0) {
+                return null;
+            }
+
+            return dept.get(0);
+
+        } catch (IOException e) {
+            throw new ConnectorIOException("Failed to call SmartHR list depts API", e);
+        }
+    }
+
+    @Override
+    public void updateDepartment(Uid uid, Department update) {
+        callPatch(DEPARTMENT_OBJECT_CLASS, getDeptEndpointURL(configuration, uid), uid, update);
     }
 
     @Override
     public void deleteDepartment(Uid uid, OperationOptions options) {
-
+        callDelete(DEPARTMENT_OBJECT_CLASS, getDeptEndpointURL(configuration, uid), uid);
     }
 
     @Override
-    public void getDepartments(SmartHRQueryHandler<Crew> handler, OperationOptions options, Set<String> attributesToGet, int queryPageSize, int pageOffset) {
+    public int getDepartments(SmartHRQueryHandler<Department> handler, OperationOptions options, Set<String> attributesToGet, int queryPageSize, int pageOffset) {
+        // Start from 1 in SmartHR
+        int page = 1;
+        if (pageOffset > 0) {
+            page = (int) Math.ceil(pageOffset / queryPageSize) + 1;
+        }
 
+        // TODO Support sort by other attributes
+        Map<String, String> params = new HashMap<>();
+        params.put("sort", "code");
+
+        int totalCount;
+
+        // If no requested pageOffset, fetch all pages
+        while (true) {
+            try (Response response = get(getDeptEndpointURL(configuration), params, page, queryPageSize)) {
+                if (response.code() != 200) {
+                    throw new ConnectorIOException(String.format("Failed to get SmartHR departments. statusCode: %d", response.code()));
+                }
+
+                // Success
+                totalCount = getTotalCount(response);
+
+                List<Department> departments = MAPPER.readValue(response.body().byteStream(),
+                        new TypeReference<List<Department>>() {
+                        });
+                if (departments.size() == 0) {
+                    break;
+                }
+
+                departments.stream().forEach(dept -> handler.handle(dept));
+
+                if (pageOffset > 0) {
+                    // If requested pageOffset, don't process paging
+                    break;
+                }
+
+                page = getPage(response);
+                queryPageSize = getPerPage(response);
+
+                if ((page * queryPageSize) < totalCount) {
+                    page++;
+                    continue;
+                }
+
+                break;
+
+            } catch (IOException e) {
+                throw new ConnectorIOException("Failed to call SmartHR get departments API", e);
+            }
+        }
+
+        return totalCount;
     }
 
     // Utilities

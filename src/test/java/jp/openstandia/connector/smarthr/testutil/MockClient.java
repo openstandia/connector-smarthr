@@ -83,22 +83,28 @@ public class MockClient implements SmartHRClient {
     }
 
     @Override
-    public void getCrews(SmartHRQueryHandler<Crew> handler, OperationOptions options, Set<String> attributesToGet, int pageSize, int pageOffset) {
+    public int getCrews(SmartHRQueryHandler<Crew> handler, OperationOptions options, Set<String> attributesToGet, int pageSize, int pageOffset) {
 
+        return pageSize;
     }
 
     @Override
-    public Uid createDepartment(Crew newCrew) throws AlreadyExistsException {
+    public Uid createDepartment(Department newCrew) throws AlreadyExistsException {
         return null;
     }
 
     @Override
-    public Crew getDepartment(Uid uid, OperationOptions options, Set<String> attributesToGet) {
+    public Department getDepartment(Uid uid, OperationOptions options, Set<String> attributesToGet) {
         return null;
     }
 
     @Override
-    public void updateDepartment(Uid uid, Crew update) {
+    public Department getDepartment(Name name, OperationOptions options, Set<String> attributesToGet) {
+        return null;
+    }
+
+    @Override
+    public void updateDepartment(Uid uid, Department update) {
 
     }
 
@@ -108,7 +114,8 @@ public class MockClient implements SmartHRClient {
     }
 
     @Override
-    public void getDepartments(SmartHRQueryHandler<Crew> handler, OperationOptions options, Set<String> attributesToGet, int pageSize, int pageOffset) {
+    public int getDepartments(SmartHRQueryHandler<Department> handler, OperationOptions options, Set<String> attributesToGet, int pageSize, int pageOffset) {
 
+        return pageSize;
     }
 }

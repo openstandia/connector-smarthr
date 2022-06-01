@@ -50,6 +50,16 @@ public interface SmartHRClient {
         return String.format("%sv1/crews/%s", url, uid.getUidValue());
     }
 
+    default String getDeptEndpointURL(SmartHRConfiguration configuration) {
+        String url = configuration.getSmartHREndpointURL();
+        return String.format("%sv1/departments", url);
+    }
+
+    default String getDeptEndpointURL(SmartHRConfiguration configuration, Uid uid) {
+        String url = configuration.getSmartHREndpointURL();
+        return String.format("%sv1/departments/%s", url, uid.getUidValue());
+    }
+
     void close();
 
     // Crew
@@ -64,19 +74,21 @@ public interface SmartHRClient {
 
     void deleteCrew(Uid uid, OperationOptions options);
 
-    void getCrews(SmartHRQueryHandler<Crew> handler, OperationOptions options, Set<String> attributesToGet, int pageSize, int pageOffset);
+    int getCrews(SmartHRQueryHandler<Crew> handler, OperationOptions options, Set<String> attributesToGet, int pageSize, int pageOffset);
 
     // Department
 
-    Uid createDepartment(Crew newCrew) throws AlreadyExistsException;
+    Uid createDepartment(Department newCrew) throws AlreadyExistsException;
 
-    Crew getDepartment(Uid uid, OperationOptions options, Set<String> attributesToGet);
+    Department getDepartment(Uid uid, OperationOptions options, Set<String> attributesToGet);
 
-    void updateDepartment(Uid uid, Crew update);
+    Department getDepartment(Name name, OperationOptions options, Set<String> attributesToGet);
+
+    void updateDepartment(Uid uid, Department update);
 
     void deleteDepartment(Uid uid, OperationOptions options);
 
-    void getDepartments(SmartHRQueryHandler<Crew> handler, OperationOptions options, Set<String> attributesToGet, int pageSize, int pageOffset);
+    int getDepartments(SmartHRQueryHandler<Department> handler, OperationOptions options, Set<String> attributesToGet, int pageSize, int pageOffset);
 
     // JSON Representation
 

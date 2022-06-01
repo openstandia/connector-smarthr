@@ -471,33 +471,33 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
     }
 
     @Override
-    public void getByUid(Uid uid, ResultsHandler resultsHandler, OperationOptions options, Set<String> attributesToGet,
-                         boolean allowPartialAttributeValues, int pageSize, int pageOffset) {
+    public int getByUid(Uid uid, ResultsHandler resultsHandler, OperationOptions options, Set<String> attributesToGet,
+                        boolean allowPartialAttributeValues, int pageSize, int pageOffset) {
         SmartHRClient.Crew crew = client.getCrew(uid, options, attributesToGet);
 
         if (crew != null) {
             resultsHandler.handle(toConnectorObject(schema, crew, attributesToGet, allowPartialAttributeValues));
+            return 1;
         }
+        return 0;
     }
 
     @Override
-    public void getByName(Name name, ResultsHandler resultsHandler, OperationOptions options, Set<String> attributesToGet,
-                          boolean allowPartialAttributeValues, int pageSize, int pageOffset) {
+    public int getByName(Name name, ResultsHandler resultsHandler, OperationOptions options, Set<String> attributesToGet,
+                         boolean allowPartialAttributeValues, int pageSize, int pageOffset) {
         SmartHRClient.Crew user = client.getCrew(name, options, attributesToGet);
 
         if (user != null) {
             resultsHandler.handle(toConnectorObject(schema, user, attributesToGet, allowPartialAttributeValues));
+            return 1;
         }
+        return 0;
     }
 
     @Override
-    public void getAll(ResultsHandler resultsHandler, OperationOptions options, Set<String> attributesToGet,
-                       boolean allowPartialAttributeValues, int pageSize, int pageOffset) {
-        client.getCrews((crew) -> resultsHandler.handle(toConnectorObject(schema, crew, attributesToGet, allowPartialAttributeValues)),
+    public int getAll(ResultsHandler resultsHandler, OperationOptions options, Set<String> attributesToGet,
+                      boolean allowPartialAttributeValues, int pageSize, int pageOffset) {
+        return client.getCrews((crew) -> resultsHandler.handle(toConnectorObject(schema, crew, attributesToGet, allowPartialAttributeValues)),
                 options, attributesToGet, pageSize, pageOffset);
-    }
-
-    private void get(String username, ResultsHandler resultsHandler, OperationOptions options, Set<String> attributesToGet, boolean allowPartialAttributeValues) {
-
     }
 }

@@ -23,10 +23,7 @@ import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.exceptions.*;
 import org.identityconnectors.framework.common.objects.*;
 import org.identityconnectors.framework.common.objects.filter.FilterTranslator;
-import org.identityconnectors.framework.spi.Configuration;
-import org.identityconnectors.framework.spi.ConnectorClass;
-import org.identityconnectors.framework.spi.InstanceNameAware;
-import org.identityconnectors.framework.spi.PoolableConnector;
+import org.identityconnectors.framework.spi.*;
 import org.identityconnectors.framework.spi.operations.*;
 
 import java.io.IOException;
@@ -211,21 +208,30 @@ public class SmartHRConnector implements PoolableConnector, CreateOp, UpdateDelt
         Set<String> attributesToGet = createFullAttributesToGet(schema, options);
         boolean allowPartialAttributeValues = shouldAllowPartialAttributeValues(options);
 
+        int total = 0;
+
         if (filter != null) {
             if (filter.isByUid()) {
-                schemaHandler.getByUid((Uid) filter.attributeValue, resultsHandler, options, attributesToGet,
+                total = schemaHandler.getByUid((Uid) filter.attributeValue, resultsHandler, options, attributesToGet,
                         allowPartialAttributeValues, pageSize, pageOffset);
-                return;
             } else if (filter.isByName()) {
-                schemaHandler.getByName((Name) filter.attributeValue, resultsHandler, options, attributesToGet,
+                total = schemaHandler.getByName((Name) filter.attributeValue, resultsHandler, options, attributesToGet,
                         allowPartialAttributeValues, pageSize, pageOffset);
-                return;
             }
             // No result
-            return;
+        } else {
+            total = schemaHandler.getAll(resultsHandler, options, attributesToGet, allowPartialAttributeValues, pageSize, pageOffset);
         }
 
-        schemaHandler.getAll(resultsHandler, options, attributesToGet, allowPartialAttributeValues, pageSize, pageOffset);
+        if (resultsHandler instanceof SearchResultsHandler &&
+                pageOffset > 0) {
+
+            int remaining = total - (pageSize * pageOffset);
+
+            SearchResultsHandler searchResultsHandler = (SearchResultsHandler) resultsHandler;
+            SearchResult searchResult = new SearchResult(null, remaining);
+            searchResultsHandler.handleResult(searchResult);
+        }
     }
 
     @Override
