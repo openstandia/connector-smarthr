@@ -90,6 +90,15 @@ public class SmartHRDepartmentHandler implements SmartHRObjectHandler {
         );
 
         // Metadata (readonly)
+        sb.add("position",
+                SchemaDefinition.Types.INTEGER,
+                SmartHRClient.Department.class,
+                SmartHRClient.Department.class,
+                (source, dest) -> dest.position = source,
+                (source) -> source.position,
+                null,
+                NOT_CREATABLE, NOT_UPDATABLE
+        );
         sb.add("created_at",
                 SchemaDefinition.Types.DATETIME_STRING,
                 SmartHRClient.Department.class,

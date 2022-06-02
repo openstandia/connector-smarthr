@@ -234,6 +234,7 @@ public interface SmartHRClient {
         public Department parent;
         public String created_at;
         public String updated_at;
+        public Integer position;
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)

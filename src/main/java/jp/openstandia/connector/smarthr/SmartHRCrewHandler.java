@@ -383,11 +383,13 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
 
         // Custom Fields
         for (SmartHRClient.CrewCustomField field : schema) {
+            final String name = "custom." + field.id;
+
             switch (field.type) {
                 case "string":
                 case "text":
                 case "enum":
-                    sb.add(field.id,
+                    sb.add(name,
                             SchemaDefinition.Types.STRING,
                             SmartHRClient.Crew.class,
                             SmartHRClient.Crew.class,
@@ -410,7 +412,7 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
                     );
                     break;
                 case "decimal":
-                    sb.add(field.id,
+                    sb.add(name,
                             SchemaDefinition.Types.BIG_DECIMAL,
                             SmartHRClient.Crew.class,
                             SmartHRClient.Crew.class,
@@ -433,7 +435,7 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
                     );
                     break;
                 case "date":
-                    sb.add(field.id,
+                    sb.add(name,
                             SchemaDefinition.Types.DATE,
                             SmartHRClient.Crew.class,
                             SmartHRClient.Crew.class,
@@ -515,10 +517,10 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
     public int getByUid(Uid uid, ResultsHandler resultsHandler, OperationOptions options,
                         Set<String> returnAttributesSet, Set<String> fetchFieldsSet,
                         boolean allowPartialAttributeValues, int pageSize, int pageOffset) {
-        SmartHRClient.Crew crew = client.getCrew(uid, options, returnAttributesSet);
+        SmartHRClient.Crew crew = client.getCrew(uid, options, fetchFieldsSet);
 
         if (crew != null) {
-            resultsHandler.handle(toConnectorObject(schema, crew, fetchFieldsSet, allowPartialAttributeValues));
+            resultsHandler.handle(toConnectorObject(schema, crew, returnAttributesSet, allowPartialAttributeValues));
             return 1;
         }
         return 0;
