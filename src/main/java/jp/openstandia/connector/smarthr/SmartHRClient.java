@@ -96,57 +96,57 @@ public interface SmartHRClient {
 
     Uid createCrew(Crew newCrew) throws AlreadyExistsException;
 
-    Crew getCrew(Uid uid, OperationOptions options, Set<String> attributesToGet);
+    Crew getCrew(Uid uid, OperationOptions options, Set<String> fetchFieldsSet);
 
-    Crew getCrew(Name name, OperationOptions options, Set<String> attributesToGet);
+    Crew getCrew(Name name, OperationOptions options, Set<String> fetchFieldsSet);
 
     void updateCrew(Uid uid, Crew update);
 
     void deleteCrew(Uid uid, OperationOptions options);
 
-    int getCrews(SmartHRQueryHandler<Crew> handler, OperationOptions options, Set<String> attributesToGet, int pageSize, int pageOffset);
+    int getCrews(SmartHRQueryHandler<Crew> handler, OperationOptions options, Set<String> fetchFieldsSet, int pageSize, int pageOffset);
 
     // Department
 
     Uid createDepartment(Department newCrew) throws AlreadyExistsException;
 
-    Department getDepartment(Uid uid, OperationOptions options, Set<String> attributesToGet);
+    Department getDepartment(Uid uid, OperationOptions options, Set<String> fetchFieldsSet);
 
-    Department getDepartment(Name name, OperationOptions options, Set<String> attributesToGet);
+    Department getDepartment(Name name, OperationOptions options, Set<String> fetchFieldsSet);
 
     void updateDepartment(Uid uid, Department update);
 
     void deleteDepartment(Uid uid, OperationOptions options);
 
-    int getDepartments(SmartHRQueryHandler<Department> handler, OperationOptions options, Set<String> attributesToGet, int pageSize, int pageOffset);
+    int getDepartments(SmartHRQueryHandler<Department> handler, OperationOptions options, Set<String> fetchFieldsSet, int pageSize, int pageOffset);
 
     // EmploymentType
 
     Uid createEmploymentType(EmploymentType newCrew) throws AlreadyExistsException;
 
-    EmploymentType getEmploymentType(Uid uid, OperationOptions options, Set<String> attributesToGet);
+    EmploymentType getEmploymentType(Uid uid, OperationOptions options, Set<String> fetchFieldsSet);
 
-    EmploymentType getEmploymentType(Name name, OperationOptions options, Set<String> attributesToGet);
+    EmploymentType getEmploymentType(Name name, OperationOptions options, Set<String> fetchFieldsSet);
 
     void updateEmploymentType(Uid uid, EmploymentType update);
 
     void deleteEmploymentType(Uid uid, OperationOptions options);
 
-    int getEmploymentTypes(SmartHRQueryHandler<EmploymentType> handler, OperationOptions options, Set<String> attributesToGet, int pageSize, int pageOffset);
+    int getEmploymentTypes(SmartHRQueryHandler<EmploymentType> handler, OperationOptions options, Set<String> fetchFieldsSet, int pageSize, int pageOffset);
 
     // JobTitle
 
     Uid createJobTitle(JobTitle newCrew) throws AlreadyExistsException;
 
-    JobTitle getJobTitle(Uid uid, OperationOptions options, Set<String> attributesToGet);
+    JobTitle getJobTitle(Uid uid, OperationOptions options, Set<String> fetchFieldsSet);
 
-    JobTitle getJobTitle(Name name, OperationOptions options, Set<String> attributesToGet);
+    JobTitle getJobTitle(Name name, OperationOptions options, Set<String> fetchFieldsSet);
 
     void updateJobTitle(Uid uid, JobTitle update);
 
     void deleteJobTitle(Uid uid, OperationOptions options);
 
-    int getJobTitles(SmartHRQueryHandler<JobTitle> handler, OperationOptions options, Set<String> attributesToGet, int pageSize, int pageOffset);
+    int getJobTitles(SmartHRQueryHandler<JobTitle> handler, OperationOptions options, Set<String> fetchFieldsSet, int pageSize, int pageOffset);
 
     // JSON Representation
 

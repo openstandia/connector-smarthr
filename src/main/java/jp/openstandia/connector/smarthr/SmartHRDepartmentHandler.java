@@ -53,6 +53,7 @@ public class SmartHRDepartmentHandler implements SmartHRObjectHandler {
                 SmartHRClient.Department.class,
                 null,
                 (source) -> source.id,
+                "id",
                 REQUIRED, NOT_CREATABLE, NOT_UPDATABLE
         );
 
@@ -65,7 +66,8 @@ public class SmartHRDepartmentHandler implements SmartHRObjectHandler {
                 SmartHRClient.Department.class,
                 SmartHRClient.Department.class,
                 (source, dest) -> dest.code = source,
-                (source) -> StringUtil.isEmpty(source.code) ? source.id : source.code
+                (source) -> StringUtil.isEmpty(source.code) ? source.id : source.code,
+                null
         );
 
         sb.add("name",
@@ -74,6 +76,7 @@ public class SmartHRDepartmentHandler implements SmartHRObjectHandler {
                 SmartHRClient.Department.class,
                 (source, dest) -> dest.name = source,
                 (source) -> source.name,
+                null,
                 REQUIRED
         );
 
@@ -82,7 +85,8 @@ public class SmartHRDepartmentHandler implements SmartHRObjectHandler {
                 SmartHRClient.Department.class,
                 SmartHRClient.Department.class,
                 (source, dest) -> dest.parent_id = source,
-                (source) -> source.parent != null ? source.parent.id : null
+                (source) -> source.parent != null ? source.parent.id : null,
+                null
         );
 
         // Metadata (readonly)
@@ -91,14 +95,16 @@ public class SmartHRDepartmentHandler implements SmartHRObjectHandler {
                 SmartHRClient.Department.class,
                 SmartHRClient.Department.class,
                 null,
-                (source) -> source.created_at
+                (source) -> source.created_at,
+                null
         );
         sb.add("updated_at",
                 SchemaDefinition.Types.DATETIME_STRING,
                 SmartHRClient.Department.class,
                 SmartHRClient.Department.class,
                 null,
-                (source) -> source.updated_at
+                (source) -> source.updated_at,
+                null
         );
 
         LOGGER.ok("The constructed department schema");
@@ -147,33 +153,36 @@ public class SmartHRDepartmentHandler implements SmartHRObjectHandler {
     }
 
     @Override
-    public int getByUid(Uid uid, ResultsHandler resultsHandler, OperationOptions options, Set<String> attributesToGet,
+    public int getByUid(Uid uid, ResultsHandler resultsHandler, OperationOptions options,
+                        Set<String> returnAttributesSet, Set<String> fetchFieldsSet,
                         boolean allowPartialAttributeValues, int pageSize, int pageOffset) {
-        SmartHRClient.Department dept = client.getDepartment(uid, options, attributesToGet);
+        SmartHRClient.Department dept = client.getDepartment(uid, options, fetchFieldsSet);
 
         if (dept != null) {
-            resultsHandler.handle(toConnectorObject(schema, dept, attributesToGet, allowPartialAttributeValues));
+            resultsHandler.handle(toConnectorObject(schema, dept, returnAttributesSet, allowPartialAttributeValues));
             return 1;
         }
         return 0;
     }
 
     @Override
-    public int getByName(Name name, ResultsHandler resultsHandler, OperationOptions options, Set<String> attributesToGet,
+    public int getByName(Name name, ResultsHandler resultsHandler, OperationOptions options,
+                         Set<String> returnAttributesSet, Set<String> fetchFieldsSet,
                          boolean allowPartialAttributeValues, int pageSize, int pageOffset) {
-        SmartHRClient.Department dept = client.getDepartment(name, options, attributesToGet);
+        SmartHRClient.Department dept = client.getDepartment(name, options, fetchFieldsSet);
 
         if (dept != null) {
-            resultsHandler.handle(toConnectorObject(schema, dept, attributesToGet, allowPartialAttributeValues));
+            resultsHandler.handle(toConnectorObject(schema, dept, returnAttributesSet, allowPartialAttributeValues));
             return 1;
         }
         return 0;
     }
 
     @Override
-    public int getAll(ResultsHandler resultsHandler, OperationOptions options, Set<String> attributesToGet,
+    public int getAll(ResultsHandler resultsHandler, OperationOptions options,
+                      Set<String> returnAttributesSet, Set<String> fetchFieldsSet,
                       boolean allowPartialAttributeValues, int pageSize, int pageOffset) {
-        return client.getDepartments((crew) -> resultsHandler.handle(toConnectorObject(schema, crew, attributesToGet, allowPartialAttributeValues)),
-                options, attributesToGet, pageSize, pageOffset);
+        return client.getDepartments((crew) -> resultsHandler.handle(toConnectorObject(schema, crew, returnAttributesSet, allowPartialAttributeValues)),
+                options, fetchFieldsSet, pageSize, pageOffset);
     }
 }

@@ -33,7 +33,6 @@ import static jp.openstandia.connector.smarthr.SmartHRUtils.shouldReturn;
 
 public class SchemaDefinition {
 
-
     public static Builder newBuilder(ObjectClass objectClass) {
         Builder schemaBuilder = new Builder(objectClass);
         return schemaBuilder;
@@ -57,9 +56,11 @@ public class SchemaDefinition {
                                         BiConsumer<T, U> update,
                                         Function<R, T> read,
 
+                                        String fetchField,
+
                                         SchemaOption... options
         ) {
-            AttributeMapper attr = new AttributeMapper(Uid.NAME, name, typeClass, create, update, read, options);
+            AttributeMapper attr = new AttributeMapper(Uid.NAME, name, typeClass, create, update, read, fetchField, options);
             this.attributes.add(attr);
         }
 
@@ -71,9 +72,11 @@ public class SchemaDefinition {
                                       BiConsumer<T, CU> createOrUpdate,
                                       Function<R, T> read,
 
+                                      String fetchField,
+
                                       SchemaOption... options
         ) {
-            AttributeMapper attr = new AttributeMapper(Uid.NAME, name, typeClass, createOrUpdate, createOrUpdate, read, options);
+            AttributeMapper attr = new AttributeMapper(Uid.NAME, name, typeClass, createOrUpdate, createOrUpdate, read, fetchField, options);
             this.attributes.add(attr);
         }
 
@@ -87,9 +90,11 @@ public class SchemaDefinition {
                                          BiConsumer<T, U> update,
                                          Function<R, T> read,
 
+                                         String fetchField,
+
                                          SchemaOption... options
         ) {
-            AttributeMapper attr = new AttributeMapper(Name.NAME, name, typeClass, create, update, read, options);
+            AttributeMapper attr = new AttributeMapper(Name.NAME, name, typeClass, create, update, read, fetchField, options);
             this.attributes.add(attr);
         }
 
@@ -101,9 +106,11 @@ public class SchemaDefinition {
                                        BiConsumer<T, CU> createOrUpdate,
                                        Function<R, T> read,
 
+                                       String fetchField,
+
                                        SchemaOption... options
         ) {
-            AttributeMapper attr = new AttributeMapper(Name.NAME, name, typeClass, createOrUpdate, createOrUpdate, read, options);
+            AttributeMapper attr = new AttributeMapper(Name.NAME, name, typeClass, createOrUpdate, createOrUpdate, read, fetchField, options);
             this.attributes.add(attr);
         }
 
@@ -117,9 +124,11 @@ public class SchemaDefinition {
                                      BiConsumer<T, U> update,
                                      Function<R, T> read,
 
+                                     String fetchField,
+
                                      SchemaOption... options
         ) {
-            AttributeMapper attr = new AttributeMapper(name, typeClass, create, update, read, options);
+            AttributeMapper attr = new AttributeMapper(name, typeClass, create, update, read, fetchField, options);
             this.attributes.add(attr);
         }
 
@@ -131,9 +140,11 @@ public class SchemaDefinition {
                                    BiConsumer<T, CU> createOrUpdate,
                                    Function<R, T> read,
 
+                                   String fetchField,
+
                                    SchemaOption... options
         ) {
-            AttributeMapper attr = new AttributeMapper(name, typeClass, createOrUpdate, createOrUpdate, read, options);
+            AttributeMapper attr = new AttributeMapper(name, typeClass, createOrUpdate, createOrUpdate, read, fetchField, options);
             this.attributes.add(attr);
         }
 
@@ -148,9 +159,11 @@ public class SchemaDefinition {
                                                BiConsumer<List<T>, U> updateRemove,
                                                Function<R, List<T>> read,
 
+                                               String fetchField,
+
                                                SchemaOption... options
         ) {
-            AttributeMapper attr = new AttributeMapper(name, typeClass, create, updateAdd, updateRemove, read, options);
+            AttributeMapper attr = new AttributeMapper(name, typeClass, create, updateAdd, updateRemove, read, fetchField, options);
             this.attributes.add(attr);
         }
 
@@ -234,7 +247,9 @@ public class SchemaDefinition {
     private final ObjectClass objectClass;
     private final ObjectClassInfo objectClassInfo;
     private final Map<String, AttributeMapper> attributeMap;
-    private final Set<String> returnedByDefaultAttributesSet;
+    // Key: attribute name (for connector. e.g. __NAME__)
+    // Value: field name for resource fetching
+    private final Map<String, String> returnedByDefaultAttributesSet;
 
     public SchemaDefinition(ObjectClass objectClass, ObjectClassInfo objectClassInfo, Map<String, AttributeMapper> attributeMap) {
         this.objectClass = objectClass;
@@ -243,15 +258,23 @@ public class SchemaDefinition {
         this.returnedByDefaultAttributesSet = getObjectClassInfo().getAttributeInfo().stream()
                 .filter(i -> i.isReturnedByDefault())
                 .map(i -> i.getName())
-                .collect(Collectors.toSet());
+                .collect(Collectors.toMap(n -> n, n -> attributeMap.get(n).fetchField));
     }
 
     public ObjectClassInfo getObjectClassInfo() {
         return objectClassInfo;
     }
 
-    public Set<String> getReturnedByDefaultAttributesSet() {
+    public Map<String, String> getReturnedByDefaultAttributesSet() {
         return returnedByDefaultAttributesSet;
+    }
+
+    public String getFetchField(String name) {
+        AttributeMapper attributeMapper = attributeMap.get(name);
+        if (attributeMapper != null) {
+            return attributeMapper.fetchField;
+        }
+        return null;
     }
 
     public <T> T apply(Set<Attribute> attrs, T dest) {
@@ -292,7 +315,7 @@ public class SchemaDefinition {
         builder.addAttribute(name.apply(source));
 
         for (Map.Entry<String, AttributeMapper> entry : attributeMap.entrySet()) {
-            if (shouldReturn(attributesToGet, entry.getKey(), returnedByDefaultAttributesSet.contains(entry.getKey()))) {
+            if (shouldReturn(attributesToGet, entry.getKey(), returnedByDefaultAttributesSet.containsKey(entry.getKey()))) {
                 Attribute value = entry.getValue().apply(source);
                 if (value != null) {
                     builder.addAttribute(value);
@@ -357,6 +380,8 @@ public class SchemaDefinition {
         private final BiConsumer<List<T>, U> remove;
         private final Function<R, Object> read;
 
+        private final String fetchField;
+
         private final SchemaOption[] options;
 
         private DateTimeFormatter dateFormat;
@@ -369,38 +394,20 @@ public class SchemaDefinition {
                                BiConsumer<T, C> create,
                                BiConsumer<T, U> replace,
                                Function<R, Object> read,
+                               String fetchField,
                                SchemaOption... options
         ) {
-            this.connectorName = connectorName;
-            this.name = name;
-            this.type = typeClass;
-            this.create = create;
-            this.replace = replace;
-            this.add = null;
-            this.remove = null;
-            this.read = read;
-            this.options = options;
-
-            this.isMultiple = false;
+            this(connectorName, name, typeClass, create, replace, null, null, read, fetchField, false, options);
         }
 
         public AttributeMapper(String name, Types<T> typeClass,
                                BiConsumer<T, C> create,
                                BiConsumer<T, U> replace,
                                Function<R, Object> read,
+                               String fetchField,
                                SchemaOption... options
         ) {
-            this.connectorName = name;
-            this.name = name;
-            this.type = typeClass;
-            this.create = create;
-            this.replace = replace;
-            this.add = null;
-            this.remove = null;
-            this.read = read;
-            this.options = options;
-
-            this.isMultiple = false;
+            this(name, name, typeClass, create, replace, null, null, read, fetchField, false, options);
         }
 
         public AttributeMapper(String name, Types<T> typeClass,
@@ -408,19 +415,33 @@ public class SchemaDefinition {
                                BiConsumer<List<T>, U> add,
                                BiConsumer<List<T>, U> remove,
                                Function<R, Object> read,
+                               String fetchField,
                                SchemaOption... options
         ) {
-            this.connectorName = name;
+            this(name, name, typeClass, create, null, add, remove, read, fetchField, true, options);
+        }
+
+        public AttributeMapper(String connectorName, String name, Types<T> typeClass,
+                               BiConsumer<T, C> create,
+                               BiConsumer<T, U> replace,
+                               BiConsumer<List<T>, U> add,
+                               BiConsumer<List<T>, U> remove,
+                               Function<R, Object> read,
+                               String fetchField,
+                               boolean isMultiple,
+                               SchemaOption... options
+        ) {
+            this.connectorName = connectorName;
             this.name = name;
             this.type = typeClass;
             this.create = create;
-            this.replace = null;
+            this.replace = replace;
             this.add = add;
             this.remove = remove;
             this.read = read;
+            this.fetchField = fetchField != null ? fetchField : name;
             this.options = options;
-
-            this.isMultiple = true;
+            this.isMultiple = isMultiple;
         }
 
         public boolean isStringType() {

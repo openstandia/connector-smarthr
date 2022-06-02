@@ -65,6 +65,7 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
                 SmartHRClient.Crew.class,
                 null,
                 (source) -> source.id,
+                "id",
                 REQUIRED, NOT_CREATABLE, NOT_UPDATABLE
         );
 
@@ -77,7 +78,8 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
                 SmartHRClient.Crew.class,
                 SmartHRClient.Crew.class,
                 (source, dest) -> dest.emp_code = source,
-                (source) -> StringUtil.isEmpty(source.emp_code) ? source.id : source.emp_code
+                (source) -> StringUtil.isEmpty(source.emp_code) ? source.id : source.emp_code,
+                null
         );
 
         // 基本情報
@@ -86,28 +88,32 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
                 SmartHRClient.Crew.class,
                 SmartHRClient.Crew.class,
                 (source, dest) -> dest.last_name = source,
-                (source) -> source.last_name
+                (source) -> source.last_name,
+                null
         );
         sb.add("first_name",
                 SchemaDefinition.Types.STRING,
                 SmartHRClient.Crew.class,
                 SmartHRClient.Crew.class,
                 (source, dest) -> dest.first_name = source,
-                (source) -> source.first_name
+                (source) -> source.first_name,
+                null
         );
         sb.add("last_name_yomi",
                 SchemaDefinition.Types.STRING,
                 SmartHRClient.Crew.class,
                 SmartHRClient.Crew.class,
                 (source, dest) -> dest.last_name_yomi = source,
-                (source) -> source.last_name_yomi
+                (source) -> source.last_name_yomi,
+                null
         );
         sb.add("first_name_yomi",
                 SchemaDefinition.Types.STRING,
                 SmartHRClient.Crew.class,
                 SmartHRClient.Crew.class,
                 (source, dest) -> dest.first_name_yomi = source,
-                (source) -> source.first_name_yomi
+                (source) -> source.first_name_yomi,
+                null
         );
 
         sb.add("business_last_name",
@@ -115,28 +121,32 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
                 SmartHRClient.Crew.class,
                 SmartHRClient.Crew.class,
                 (source, dest) -> dest.business_last_name = source,
-                (source) -> source.business_last_name
+                (source) -> source.business_last_name,
+                null
         );
         sb.add("business_first_name",
                 SchemaDefinition.Types.STRING,
                 SmartHRClient.Crew.class,
                 SmartHRClient.Crew.class,
                 (source, dest) -> dest.business_first_name = source,
-                (source) -> source.business_first_name
+                (source) -> source.business_first_name,
+                null
         );
         sb.add("business_last_name_yomi",
                 SchemaDefinition.Types.STRING,
                 SmartHRClient.Crew.class,
                 SmartHRClient.Crew.class,
                 (source, dest) -> dest.business_last_name_yomi = source,
-                (source) -> source.business_last_name_yomi
+                (source) -> source.business_last_name_yomi,
+                null
         );
         sb.add("business_first_name_yomi",
                 SchemaDefinition.Types.STRING,
                 SmartHRClient.Crew.class,
                 SmartHRClient.Crew.class,
                 (source, dest) -> dest.business_first_name_yomi = source,
-                (source) -> source.business_first_name_yomi
+                (source) -> source.business_first_name_yomi,
+                null
         );
 
         sb.add("birth_at",
@@ -144,21 +154,24 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
                 SmartHRClient.Crew.class,
                 SmartHRClient.Crew.class,
                 (source, dest) -> dest.birth_at = source,
-                (source) -> source.birth_at
+                (source) -> source.birth_at,
+                null
         );
         sb.add("gender",
                 SchemaDefinition.Types.STRING,
                 SmartHRClient.Crew.class,
                 SmartHRClient.Crew.class,
                 (source, dest) -> dest.gender = source,
-                (source) -> source.gender
+                (source) -> source.gender,
+                null
         );
         sb.add("email",
                 SchemaDefinition.Types.STRING,
                 SmartHRClient.Crew.class,
                 SmartHRClient.Crew.class,
                 (source, dest) -> dest.email = source,
-                (source) -> source.email
+                (source) -> source.email,
+                null
         );
 
         // 入退社情報
@@ -168,6 +181,7 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
                 SmartHRClient.Crew.class,
                 (source, dest) -> dest.emp_status = source,
                 (source) -> source.emp_status,
+                null,
                 REQUIRED
         );
         sb.add("entered_at",
@@ -175,14 +189,16 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
                 SmartHRClient.Crew.class,
                 SmartHRClient.Crew.class,
                 (source, dest) -> dest.entered_at = source,
-                (source) -> source.entered_at
+                (source) -> source.entered_at,
+                null
         );
         sb.add("resigned_at",
                 SchemaDefinition.Types.DATE_STRING,
                 SmartHRClient.Crew.class,
                 SmartHRClient.Crew.class,
                 (source, dest) -> dest.resigned_at = source,
-                (source) -> source.resigned_at
+                (source) -> source.resigned_at,
+                null
         );
 
         // 業務情報
@@ -199,14 +215,16 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
                 SmartHRClient.Crew.class,
                 SmartHRClient.Crew.class,
                 (source, dest) -> dest.biz_establishment_id = source,
-                (source) -> source.biz_establishment_id
+                (source) -> source.biz_establishment_id,
+                null
         );
         sb.add("employment_type.id",
                 SchemaDefinition.Types.UUID,
                 SmartHRClient.Crew.class,
                 SmartHRClient.Crew.class,
                 (source, dest) -> dest.employment_type_id = source,
-                (source) -> source.employment_type != null ? source.employment_type.id : null
+                (source) -> source.employment_type != null ? source.employment_type.id : null,
+                "employment_type"
         );
         // readonly
         sb.add("employment_type.name",
@@ -215,6 +233,7 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
                 SmartHRClient.Crew.class,
                 null,
                 (source) -> source.employment_type != null ? source.employment_type.name : null,
+                "employment_type",
                 NOT_CREATABLE, NOT_UPDATABLE
         );
         // readonly
@@ -224,6 +243,7 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
                 SmartHRClient.Crew.class,
                 null,
                 (source) -> source.employment_type != null ? source.employment_type.preset_type : null,
+                "employment_type",
                 NOT_CREATABLE, NOT_UPDATABLE
         );
         sb.add("position",
@@ -231,14 +251,16 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
                 SmartHRClient.Crew.class,
                 SmartHRClient.Crew.class,
                 (source, dest) -> dest.position = source,
-                (source) -> source.position
+                (source) -> source.position,
+                null
         );
         sb.add("occupation",
                 SchemaDefinition.Types.STRING,
                 SmartHRClient.Crew.class,
                 SmartHRClient.Crew.class,
                 (source, dest) -> dest.occupation = source,
-                (source) -> source.occupation
+                (source) -> source.occupation,
+                null
         );
 
         // 部署情報
@@ -249,6 +271,7 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
                 SmartHRClient.Crew.class,
                 null,
                 (source) -> source.department,
+                null,
                 NOT_CREATABLE, NOT_UPDATABLE
         );
         // Association
@@ -260,7 +283,8 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
                 (source, dest) -> dest.department_ids = source,
                 (add, dest) -> dest.department_ids.addAll(add),
                 (remove, dest) -> dest.department_ids.removeAll(remove),
-                (source) -> source.departments != null ? source.departments.stream().map(d -> d.id).collect(Collectors.toList()) : null
+                (source) -> source.departments != null ? source.departments.stream().map(d -> d.id).collect(Collectors.toList()) : null,
+                null
         );
         // readonly
         sb.addAsMultiple("raw_departments",
@@ -288,6 +312,7 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
                             .collect(Collectors.toList());
                     return depts;
                 },
+                "departments",
                 NOT_CREATABLE, NOT_UPDATABLE, NOT_RETURN_BY_DEFAULT
         );
 
@@ -298,6 +323,7 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
                 SmartHRClient.Crew.class,
                 (source, dest) -> dest.tel_number = source,
                 (source) -> source.tel_number,
+                null,
                 NOT_RETURN_BY_DEFAULT
         );
 
@@ -307,28 +333,32 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
                 SmartHRClient.Crew.class,
                 SmartHRClient.Crew.class,
                 (source, dest) -> dest.contract_type = source,
-                (source) -> source.contract_type
+                (source) -> source.contract_type,
+                null
         );
         sb.add("contract_start_on",
                 SchemaDefinition.Types.DATE_STRING,
                 SmartHRClient.Crew.class,
                 SmartHRClient.Crew.class,
                 (source, dest) -> dest.contract_start_on = source,
-                (source) -> source.contract_start_on
+                (source) -> source.contract_start_on,
+                null
         );
         sb.add("contract_end_on",
                 SchemaDefinition.Types.DATE_STRING,
                 SmartHRClient.Crew.class,
                 SmartHRClient.Crew.class,
                 (source, dest) -> dest.contract_end_on = source,
-                (source) -> source.contract_end_on
+                (source) -> source.contract_end_on,
+                null
         );
         sb.add("contract_renewal_type",
                 SchemaDefinition.Types.STRING,
                 SmartHRClient.Crew.class,
                 SmartHRClient.Crew.class,
                 (source, dest) -> dest.contract_renewal_type = source,
-                (source) -> source.contract_renewal_type
+                (source) -> source.contract_renewal_type,
+                null
         );
 
         // Metadata (readonly)
@@ -337,14 +367,16 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
                 SmartHRClient.Crew.class,
                 SmartHRClient.Crew.class,
                 null,
-                (source) -> source.created_at
+                (source) -> source.created_at,
+                null
         );
         sb.add("updated_at",
                 SchemaDefinition.Types.DATETIME_STRING,
                 SmartHRClient.Crew.class,
                 SmartHRClient.Crew.class,
                 null,
-                (source) -> source.updated_at
+                (source) -> source.updated_at,
+                null
         );
 
         // Custom Fields
@@ -371,7 +403,8 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
                                     return value.get().value;
                                 }
                                 return null;
-                            }
+                            },
+                            "customField"
                     );
                     break;
                 case "decimal":
@@ -393,7 +426,8 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
                                     return new BigDecimal(value.get().value);
                                 }
                                 return null;
-                            }
+                            },
+                            "customField"
                     );
                     break;
                 case "date":
@@ -415,7 +449,8 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
                                     return toZoneDateTime(value.get().value);
                                 }
                                 return null;
-                            }
+                            },
+                            "customField"
                     );
                     break;
                 case "file":
@@ -475,33 +510,36 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
     }
 
     @Override
-    public int getByUid(Uid uid, ResultsHandler resultsHandler, OperationOptions options, Set<String> attributesToGet,
+    public int getByUid(Uid uid, ResultsHandler resultsHandler, OperationOptions options,
+                        Set<String> returnAttributesSet, Set<String> fetchFieldsSet,
                         boolean allowPartialAttributeValues, int pageSize, int pageOffset) {
-        SmartHRClient.Crew crew = client.getCrew(uid, options, attributesToGet);
+        SmartHRClient.Crew crew = client.getCrew(uid, options, returnAttributesSet);
 
         if (crew != null) {
-            resultsHandler.handle(toConnectorObject(schema, crew, attributesToGet, allowPartialAttributeValues));
+            resultsHandler.handle(toConnectorObject(schema, crew, fetchFieldsSet, allowPartialAttributeValues));
             return 1;
         }
         return 0;
     }
 
     @Override
-    public int getByName(Name name, ResultsHandler resultsHandler, OperationOptions options, Set<String> attributesToGet,
+    public int getByName(Name name, ResultsHandler resultsHandler, OperationOptions options,
+                         Set<String> returnAttributesSet, Set<String> fetchFieldsSet,
                          boolean allowPartialAttributeValues, int pageSize, int pageOffset) {
-        SmartHRClient.Crew user = client.getCrew(name, options, attributesToGet);
+        SmartHRClient.Crew user = client.getCrew(name, options, fetchFieldsSet);
 
         if (user != null) {
-            resultsHandler.handle(toConnectorObject(schema, user, attributesToGet, allowPartialAttributeValues));
+            resultsHandler.handle(toConnectorObject(schema, user, returnAttributesSet, allowPartialAttributeValues));
             return 1;
         }
         return 0;
     }
 
     @Override
-    public int getAll(ResultsHandler resultsHandler, OperationOptions options, Set<String> attributesToGet,
+    public int getAll(ResultsHandler resultsHandler, OperationOptions options,
+                      Set<String> returnAttributesSet, Set<String> fetchFieldsSet,
                       boolean allowPartialAttributeValues, int pageSize, int pageOffset) {
-        return client.getCrews((crew) -> resultsHandler.handle(toConnectorObject(schema, crew, attributesToGet, allowPartialAttributeValues)),
-                options, attributesToGet, pageSize, pageOffset);
+        return client.getCrews((crew) -> resultsHandler.handle(toConnectorObject(schema, crew, returnAttributesSet, allowPartialAttributeValues)),
+                options, fetchFieldsSet, pageSize, pageOffset);
     }
 }

@@ -15,12 +15,14 @@
  */
 package jp.openstandia.connector.smarthr;
 
-import org.identityconnectors.framework.common.objects.*;
+import org.identityconnectors.common.logging.Log;
+import org.identityconnectors.framework.common.objects.OperationOptions;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -29,6 +31,7 @@ import java.util.Set;
  * @author Hiroyuki Wada
  */
 public class SmartHRUtils {
+    private static final Log LOG = Log.getLog(SmartHRUtils.class);
 
     public static ZonedDateTime toZoneDateTime(String yyyymmdd) {
         LocalDate date = LocalDate.parse(yyyymmdd);
@@ -73,35 +76,33 @@ public class SmartHRUtils {
     }
 
     /**
-     * Create full set of ATTRIBUTES_TO_GET which is composed by RETURN_DEFAULT_ATTRIBUTES + ATTRIBUTES_TO_GET.
+     * Create full map of ATTRIBUTES_TO_GET which is composed by RETURN_DEFAULT_ATTRIBUTES + ATTRIBUTES_TO_GET.
+     * Key: attribute name of the connector (e.g. __UID__)
+     * Value: field name for resource fetching
      *
      * @param schema
      * @param options
      * @return
      */
-    public static Set<String> createFullAttributesToGet(SchemaDefinition schema, OperationOptions options) {
-        Set<String> attributesToGet = null;
-        if (shouldReturnDefaultAttributes(options)) {
-            attributesToGet = new HashSet<>();
-            attributesToGet.addAll(toReturnedByDefaultAttributesSet(schema));
-        }
+    public static Map<String, String> createFullAttributesToGet(SchemaDefinition schema, OperationOptions options) {
+        Map<String, String> attributesToGet = new HashMap<>();
+        attributesToGet.putAll(toReturnedByDefaultAttributesSet(schema));
+
         if (options.getAttributesToGet() != null) {
-            if (attributesToGet == null) {
-                attributesToGet = new HashSet<>();
-            }
             for (String a : options.getAttributesToGet()) {
-                attributesToGet.add(a);
+                String fetchField = schema.getFetchField(a);
+                if (fetchField == null) {
+                    LOG.warn("Requested unknown attribute to get. Ignored it: {0}", a);
+                    continue;
+                }
+                attributesToGet.put(a, fetchField);
             }
-        }
-        if (attributesToGet == null) {
-            // Return default attributes
-            attributesToGet = schema.getReturnedByDefaultAttributesSet();
         }
 
         return attributesToGet;
     }
 
-    private static Set<String> toReturnedByDefaultAttributesSet(SchemaDefinition schema) {
+    private static Map<String, String> toReturnedByDefaultAttributesSet(SchemaDefinition schema) {
         return schema.getReturnedByDefaultAttributesSet();
     }
 

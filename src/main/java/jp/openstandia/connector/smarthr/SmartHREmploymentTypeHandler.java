@@ -52,6 +52,7 @@ public class SmartHREmploymentTypeHandler implements SmartHRObjectHandler {
                 SmartHRClient.EmploymentType.class,
                 null,
                 (source) -> source.id,
+                "id",
                 REQUIRED, NOT_CREATABLE, NOT_UPDATABLE
         );
 
@@ -62,6 +63,7 @@ public class SmartHREmploymentTypeHandler implements SmartHRObjectHandler {
                 SmartHRClient.EmploymentType.class,
                 (source, dest) -> dest.name = source,
                 (source) -> source.name,
+                null,
                 REQUIRED
         );
 
@@ -71,14 +73,16 @@ public class SmartHREmploymentTypeHandler implements SmartHRObjectHandler {
                 SmartHRClient.EmploymentType.class,
                 SmartHRClient.EmploymentType.class,
                 null,
-                (source) -> source.created_at
+                (source) -> source.created_at,
+                null
         );
         sb.add("updated_at",
                 SchemaDefinition.Types.DATETIME_STRING,
                 SmartHRClient.EmploymentType.class,
                 SmartHRClient.EmploymentType.class,
                 null,
-                (source) -> source.updated_at
+                (source) -> source.updated_at,
+                null
         );
 
         LOGGER.ok("The constructed employment_type schema");
@@ -127,33 +131,36 @@ public class SmartHREmploymentTypeHandler implements SmartHRObjectHandler {
     }
 
     @Override
-    public int getByUid(Uid uid, ResultsHandler resultsHandler, OperationOptions options, Set<String> attributesToGet,
+    public int getByUid(Uid uid, ResultsHandler resultsHandler, OperationOptions options,
+                        Set<String> returnAttributesSet, Set<String> fetchFieldsSet,
                         boolean allowPartialAttributeValues, int pageSize, int pageOffset) {
-        SmartHRClient.EmploymentType dept = client.getEmploymentType(uid, options, attributesToGet);
+        SmartHRClient.EmploymentType dept = client.getEmploymentType(uid, options, fetchFieldsSet);
 
         if (dept != null) {
-            resultsHandler.handle(toConnectorObject(schema, dept, attributesToGet, allowPartialAttributeValues));
+            resultsHandler.handle(toConnectorObject(schema, dept, returnAttributesSet, allowPartialAttributeValues));
             return 1;
         }
         return 0;
     }
 
     @Override
-    public int getByName(Name name, ResultsHandler resultsHandler, OperationOptions options, Set<String> attributesToGet,
+    public int getByName(Name name, ResultsHandler resultsHandler, OperationOptions options,
+                         Set<String> returnAttributesSet, Set<String> fetchFieldsSet,
                          boolean allowPartialAttributeValues, int pageSize, int pageOffset) {
-        SmartHRClient.EmploymentType dept = client.getEmploymentType(name, options, attributesToGet);
+        SmartHRClient.EmploymentType dept = client.getEmploymentType(name, options, fetchFieldsSet);
 
         if (dept != null) {
-            resultsHandler.handle(toConnectorObject(schema, dept, attributesToGet, allowPartialAttributeValues));
+            resultsHandler.handle(toConnectorObject(schema, dept, returnAttributesSet, allowPartialAttributeValues));
             return 1;
         }
         return 0;
     }
 
     @Override
-    public int getAll(ResultsHandler resultsHandler, OperationOptions options, Set<String> attributesToGet,
+    public int getAll(ResultsHandler resultsHandler, OperationOptions options,
+                      Set<String> returnAttributesSet, Set<String> fetchFieldsSet,
                       boolean allowPartialAttributeValues, int pageSize, int pageOffset) {
-        return client.getEmploymentTypes((crew) -> resultsHandler.handle(toConnectorObject(schema, crew, attributesToGet, allowPartialAttributeValues)),
-                options, attributesToGet, pageSize, pageOffset);
+        return client.getEmploymentTypes((crew) -> resultsHandler.handle(toConnectorObject(schema, crew, returnAttributesSet, allowPartialAttributeValues)),
+                options, fetchFieldsSet, pageSize, pageOffset);
     }
 }

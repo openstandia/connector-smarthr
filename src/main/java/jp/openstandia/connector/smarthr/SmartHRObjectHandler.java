@@ -27,15 +27,21 @@ public interface SmartHRObjectHandler {
 
     void delete(Uid uid, OperationOptions options);
 
-    int getByUid(Uid uid, ResultsHandler resultsHandler, OperationOptions options, Set<String> attributesToGet, boolean allowPartialAttributeValues, int pageSize, int pageOffset);
+    int getByUid(Uid uid, ResultsHandler resultsHandler, OperationOptions options,
+                 Set<String> returnAttributesSet, Set<String> fetchFieldsSet,
+                 boolean allowPartialAttributeValues, int pageSize, int pageOffset);
 
-    int getByName(Name name, ResultsHandler resultsHandler, OperationOptions options, Set<String> attributesToGet, boolean allowPartialAttributeValues, int pageSize, int pageOffset);
+    int getByName(Name name, ResultsHandler resultsHandler, OperationOptions options,
+                  Set<String> returnAttributesSet, Set<String> fetchFieldsSet,
+                  boolean allowPartialAttributeValues, int pageSize, int pageOffset);
 
-    int getAll(ResultsHandler resultsHandler, OperationOptions options, Set<String> attributesToGet, boolean allowPartialAttributeValues, int pageSize, int pageOffset);
+    int getAll(ResultsHandler resultsHandler, OperationOptions options,
+               Set<String> returnAttributesSet, Set<String> fetchFieldsSet,
+               boolean allowPartialAttributeValues, int pageSize, int pageOffset);
 
     default <T> ConnectorObject toConnectorObject(SchemaDefinition schema, T crew,
-                                                  Set<String> attributesToGet, boolean allowPartialAttributeValues) {
-        ConnectorObjectBuilder builder = schema.toConnectorObjectBuilder(crew, attributesToGet, allowPartialAttributeValues);
+                                                  Set<String> returnAttributesSet, boolean allowPartialAttributeValues) {
+        ConnectorObjectBuilder builder = schema.toConnectorObjectBuilder(crew, returnAttributesSet, allowPartialAttributeValues);
         return builder.build();
     }
 

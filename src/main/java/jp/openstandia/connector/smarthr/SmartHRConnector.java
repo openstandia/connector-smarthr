@@ -30,8 +30,10 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static jp.openstandia.connector.smarthr.SmartHRUtils.*;
 
@@ -205,22 +207,29 @@ public class SmartHRConnector implements PoolableConnector, CreateOp, UpdateDelt
         int pageOffset = resolvePageOffset(options);
 
         // Create full attributesToGet by RETURN_DEFAULT_ATTRIBUTES + ATTRIBUTES_TO_GET
-        Set<String> attributesToGet = createFullAttributesToGet(schema, options);
+        Map<String, String> attributesToGet = createFullAttributesToGet(schema, options);
+        Set<String> returnAttributesSet = attributesToGet.keySet();
+        Set<String> fetchFieldSet = attributesToGet.values().stream().collect(Collectors.toSet());
+
         boolean allowPartialAttributeValues = shouldAllowPartialAttributeValues(options);
 
         int total = 0;
 
         if (filter != null) {
             if (filter.isByUid()) {
-                total = schemaHandler.getByUid((Uid) filter.attributeValue, resultsHandler, options, attributesToGet,
+                total = schemaHandler.getByUid((Uid) filter.attributeValue, resultsHandler, options,
+                        returnAttributesSet, fetchFieldSet,
                         allowPartialAttributeValues, pageSize, pageOffset);
             } else if (filter.isByName()) {
-                total = schemaHandler.getByName((Name) filter.attributeValue, resultsHandler, options, attributesToGet,
+                total = schemaHandler.getByName((Name) filter.attributeValue, resultsHandler, options,
+                        returnAttributesSet, fetchFieldSet,
                         allowPartialAttributeValues, pageSize, pageOffset);
             }
             // No result
         } else {
-            total = schemaHandler.getAll(resultsHandler, options, attributesToGet, allowPartialAttributeValues, pageSize, pageOffset);
+            total = schemaHandler.getAll(resultsHandler, options,
+                    returnAttributesSet, fetchFieldSet,
+                    allowPartialAttributeValues, pageSize, pageOffset);
         }
 
         if (resultsHandler instanceof SearchResultsHandler &&
