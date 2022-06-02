@@ -9,8 +9,8 @@ Connector for [SmartHR](https://smarthr.jp/).
 - Schema: YES
 - Provisioning: YES
 - Live Synchronization: No
-- Password: YES
-- Activation: YES
+- Password: No
+- Activation: No
 - Script execution: No
 
 ## Build
