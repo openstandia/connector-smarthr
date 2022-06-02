@@ -179,4 +179,34 @@ public class MockClient implements SmartHRClient {
     public int getJobTitles(SmartHRQueryHandler<JobTitle> handler, OperationOptions options, Set<String> attributesToGet, int pageSize, int pageOffset) {
         return 0;
     }
+
+    @Override
+    public Company getCompany(Uid uid, OperationOptions options, Set<String> fetchFieldsSet) {
+        return null;
+    }
+
+    @Override
+    public Company getCompany(Name name, OperationOptions options, Set<String> fetchFieldsSet) {
+        return null;
+    }
+
+    @Override
+    public int getCompanies(SmartHRQueryHandler<Company> handler, OperationOptions options, Set<String> fetchFieldsSet, int pageSize, int pageOffset) {
+        return 0;
+    }
+
+    @Override
+    public BizEstablishment getBizEstablishment(Uid uid, OperationOptions options, Set<String> fetchFieldsSet) {
+        return null;
+    }
+
+    @Override
+    public BizEstablishment getBizEstablishment(Name name, OperationOptions options, Set<String> fetchFieldsSet) {
+        return null;
+    }
+
+    @Override
+    public int getBizEstablishments(SmartHRQueryHandler<BizEstablishment> handler, OperationOptions options, Set<String> fetchFieldsSet, int pageSize, int pageOffset) {
+        return 0;
+    }
 }

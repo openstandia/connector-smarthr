@@ -24,6 +24,7 @@ import org.identityconnectors.framework.spi.operations.SearchOp;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * Schema for SmartHR objects.
@@ -43,21 +44,29 @@ public class SmartHRSchema {
                          List<SmartHRClient.CrewCustomField> smarthrSchema) {
         this.configuration = configuration;
         this.client = client;
+        this.schemaHandlerMap = new HashMap<>();
 
         SchemaBuilder schemaBuilder = new SchemaBuilder(SmartHRConnector.class);
 
-        SchemaDefinition crewSchema = SmartHRCrewHandler.createSchema(smarthrSchema).build();
-        schemaBuilder.defineObjectClass(crewSchema.getObjectClassInfo());
+        buildSchema(schemaBuilder, SmartHRCrewHandler.createSchema(smarthrSchema).build(),
+                (schema) -> new SmartHRCrewHandler(configuration, client, schema));
 
-        SchemaDefinition deptSchema = SmartHRDepartmentHandler.createSchema().build();
-        schemaBuilder.defineObjectClass(deptSchema.getObjectClassInfo());
+        buildSchema(schemaBuilder, SmartHRDepartmentHandler.createSchema().build(),
+                (schema) -> new SmartHRDepartmentHandler(configuration, client, schema));
 
-        SchemaDefinition empTypeSchema = SmartHREmploymentTypeHandler.createSchema().build();
-        schemaBuilder.defineObjectClass(empTypeSchema.getObjectClassInfo());
+        buildSchema(schemaBuilder, SmartHREmploymentTypeHandler.createSchema().build(),
+                (schema) -> new SmartHREmploymentTypeHandler(configuration, client, schema));
 
-        SchemaDefinition jobTitleSchema = SmartHRJobTitleHandler.createSchema().build();
-        schemaBuilder.defineObjectClass(jobTitleSchema.getObjectClassInfo());
+        buildSchema(schemaBuilder, SmartHRJobTitleHandler.createSchema().build(),
+                (schema) -> new SmartHRJobTitleHandler(configuration, client, schema));
 
+        buildSchema(schemaBuilder, SmartHRCompanyHandler.createSchema().build(),
+                (schema) -> new SmartHRCompanyHandler(configuration, client, schema));
+
+        buildSchema(schemaBuilder, SmartHRBizEstablishmentHandler.createSchema().build(),
+                (schema) -> new SmartHRBizEstablishmentHandler(configuration, client, schema));
+
+        // Define operation options
         schemaBuilder.defineOperationOption(OperationOptionInfoBuilder.buildAttributesToGet(), SearchOp.class);
         schemaBuilder.defineOperationOption(OperationOptionInfoBuilder.buildReturnDefaultAttributes(), SearchOp.class);
         schemaBuilder.defineOperationOption(OperationOptionInfoBuilder.buildPageSize(), SearchOp.class);
@@ -65,11 +74,12 @@ public class SmartHRSchema {
 
         this.schema = schemaBuilder.build();
 
-        this.schemaHandlerMap = new HashMap<>();
-        this.schemaHandlerMap.put(crewSchema.getType(), new SmartHRCrewHandler(configuration, client, crewSchema));
-        this.schemaHandlerMap.put(deptSchema.getType(), new SmartHRDepartmentHandler(configuration, client, deptSchema));
-        this.schemaHandlerMap.put(empTypeSchema.getType(), new SmartHREmploymentTypeHandler(configuration, client, empTypeSchema));
-        this.schemaHandlerMap.put(jobTitleSchema.getType(), new SmartHRJobTitleHandler(configuration, client, jobTitleSchema));
+    }
+
+    private void buildSchema(SchemaBuilder builder, SchemaDefinition schemaDefinition, Function<SchemaDefinition, SmartHRObjectHandler> callback) {
+        builder.defineObjectClass(schemaDefinition.getObjectClassInfo());
+        SmartHRObjectHandler handler = callback.apply(schemaDefinition);
+        this.schemaHandlerMap.put(schemaDefinition.getType(), handler);
     }
 
     public SmartHRObjectHandler getSchemaHandler(ObjectClass objectClass) {

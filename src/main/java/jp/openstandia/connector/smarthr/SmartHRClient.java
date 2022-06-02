@@ -90,6 +90,16 @@ public interface SmartHRClient {
         return String.format("%sapi/v1/job_titles/%s", url, name.getNameValue());
     }
 
+    default String getCompanyEndpointURL(SmartHRConfiguration configuration) {
+        String url = configuration.getEndpointURL();
+        return String.format("%sapi/v1/companies", url);
+    }
+
+    default String getBizEstablishmentEndpointURL(SmartHRConfiguration configuration) {
+        String url = configuration.getEndpointURL();
+        return String.format("%sapi/v1/biz_establishments", url);
+    }
+
     void close();
 
     // Crew
@@ -147,6 +157,22 @@ public interface SmartHRClient {
     void deleteJobTitle(Uid uid, OperationOptions options);
 
     int getJobTitles(SmartHRQueryHandler<JobTitle> handler, OperationOptions options, Set<String> fetchFieldsSet, int pageSize, int pageOffset);
+
+    // Company
+
+    Company getCompany(Uid uid, OperationOptions options, Set<String> fetchFieldsSet);
+
+    Company getCompany(Name name, OperationOptions options, Set<String> fetchFieldsSet);
+
+    int getCompanies(SmartHRQueryHandler<Company> handler, OperationOptions options, Set<String> fetchFieldsSet, int pageSize, int pageOffset);
+
+    // Biz Establishment
+
+    BizEstablishment getBizEstablishment(Uid uid, OperationOptions options, Set<String> fetchFieldsSet);
+
+    BizEstablishment getBizEstablishment(Name name, OperationOptions options, Set<String> fetchFieldsSet);
+
+    int getBizEstablishments(SmartHRQueryHandler<BizEstablishment> handler, OperationOptions options, Set<String> fetchFieldsSet, int pageSize, int pageOffset);
 
     // JSON Representation
 
@@ -216,6 +242,29 @@ public interface SmartHRClient {
         public String id;
         public String name;
         public Integer rank;
+        public String created_at;
+        public String updated_at;
+    }
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    class Company {
+        public String id;
+        public String name;
+        public String tel_number;
+        public String created_at;
+        public String updated_at;
+    }
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    class BizEstablishment {
+        public String id;
+        public String name;
+        public String soc_ins_name;
+        public String soc_ins_tel_number;
+        public String lab_ins_name;
+        public String lab_ins_tel_number;
         public String created_at;
         public String updated_at;
     }

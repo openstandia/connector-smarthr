@@ -37,6 +37,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static jp.openstandia.connector.smarthr.SmartHRBizEstablishmentHandler.BIZ_ESTABLISHMENT_OBJECT_CLASS;
+import static jp.openstandia.connector.smarthr.SmartHRCompanyHandler.COMPANY_OBJECT_CLASS;
 import static jp.openstandia.connector.smarthr.SmartHRCrewHandler.CREW_OBJECT_CLASS;
 import static jp.openstandia.connector.smarthr.SmartHRDepartmentHandler.DEPARTMENT_OBJECT_CLASS;
 import static jp.openstandia.connector.smarthr.SmartHREmploymentTypeHandler.EMPLOYMENT_TYPE_OBJECT_CLASS;
@@ -198,63 +200,12 @@ public class SmartHRRESTClient implements SmartHRClient {
 
     @Override
     public int getCrews(SmartHRQueryHandler<Crew> handler, OperationOptions options, Set<String> fetchFieldsSet, int pageSize, int pageOffset) {
-        // Start from 1 in SmartHR
-        int page = 1;
-        if (pageOffset > 0) {
-            page = (int) Math.ceil(pageOffset / pageSize) + 1;
-        }
-
         // TODO Support sort by other attributes
         Map<String, String> params = new HashMap<>();
         params.put("sort", "emp_code");
         params.put("fields", String.join(",", fetchFieldsSet));
 
-        int totalCount;
-
-        // If no requested pageOffset, fetch all pages
-        while (true) {
-            try (Response response = get(getCrewEndpointURL(configuration), params, page, pageSize)) {
-                if (response.code() != 200) {
-                    throw new ConnectorIOException(String.format("Failed to get SmartHR crews. statusCode: %d", response.code()));
-                }
-
-                // Success
-                totalCount = getTotalCount(response);
-
-                List<Crew> crews = MAPPER.readValue(response.body().byteStream(),
-                        new TypeReference<List<Crew>>() {
-                        });
-                if (crews.size() == 0) {
-                    break;
-                }
-
-                for (Crew crew : crews) {
-                    if (!handler.handle(crew)) {
-                        break;
-                    }
-                }
-
-                if (pageOffset > 0) {
-                    // If requested pageOffset, don't process paging
-                    break;
-                }
-
-                page = getPage(response);
-                pageSize = getPerPage(response);
-
-                if ((page * pageSize) < totalCount) {
-                    page++;
-                    continue;
-                }
-
-                break;
-
-            } catch (IOException e) {
-                throw new ConnectorIOException("Failed to call SmartHR get crews API", e);
-            }
-        }
-
-        return totalCount;
+        return getAll(handler, options, params, pageSize, pageOffset, getCrewEndpointURL(configuration), Crew.class, CREW_OBJECT_CLASS);
     }
 
     // Department
@@ -345,63 +296,12 @@ public class SmartHRRESTClient implements SmartHRClient {
     }
 
     @Override
-    public int getDepartments(SmartHRQueryHandler<Department> handler, OperationOptions options, Set<String> fetchFieldsSet, int pageAize, int pageOffset) {
-        // Start from 1 in SmartHR
-        int page = 1;
-        if (pageOffset > 0) {
-            page = (int) Math.ceil(pageOffset / pageAize) + 1;
-        }
-
+    public int getDepartments(SmartHRQueryHandler<Department> handler, OperationOptions options, Set<String> fetchFieldsSet, int pageSize, int pageOffset) {
         // TODO Support sort by other attributes
         Map<String, String> params = new HashMap<>();
         params.put("sort", "code");
 
-        int totalCount;
-
-        // If no requested pageOffset, fetch all pages
-        while (true) {
-            try (Response response = get(getDeptEndpointURL(configuration), params, page, pageAize)) {
-                if (response.code() != 200) {
-                    throw new ConnectorIOException(String.format("Failed to get SmartHR departments. statusCode: %d", response.code()));
-                }
-
-                // Success
-                totalCount = getTotalCount(response);
-
-                List<Department> departments = MAPPER.readValue(response.body().byteStream(),
-                        new TypeReference<List<Department>>() {
-                        });
-                if (departments.size() == 0) {
-                    break;
-                }
-
-                for (Department dept : departments) {
-                    if (!handler.handle(dept)) {
-                        break;
-                    }
-                }
-
-                if (pageOffset > 0) {
-                    // If requested pageOffset, don't process paging
-                    break;
-                }
-
-                page = getPage(response);
-                pageAize = getPerPage(response);
-
-                if ((page * pageAize) < totalCount) {
-                    page++;
-                    continue;
-                }
-
-                break;
-
-            } catch (IOException e) {
-                throw new ConnectorIOException("Failed to call SmartHR get departments API", e);
-            }
-        }
-
-        return totalCount;
+        return getAll(handler, options, params, pageSize, pageOffset, getDeptEndpointURL(configuration), Department.class, DEPARTMENT_OBJECT_CLASS);
     }
 
     // EmploymentType
@@ -485,58 +385,7 @@ public class SmartHRRESTClient implements SmartHRClient {
 
     @Override
     public int getEmploymentTypes(SmartHRQueryHandler<EmploymentType> handler, OperationOptions options, Set<String> fetchFieldsSet, int pageSize, int pageOffset) {
-        // Start from 1 in SmartHR
-        int page = 1;
-        if (pageOffset > 0) {
-            page = (int) Math.ceil(pageOffset / pageSize) + 1;
-        }
-
-        int totalCount;
-
-        // If no requested pageOffset, fetch all pages
-        while (true) {
-            try (Response response = get(getEmpTypeEndpointURL(configuration), page, pageSize)) {
-                if (response.code() != 200) {
-                    throw new ConnectorIOException(String.format("Failed to get SmartHR employment_types. statusCode: %d", response.code()));
-                }
-
-                // Success
-                totalCount = getTotalCount(response);
-
-                List<EmploymentType> employmentTypes = MAPPER.readValue(response.body().byteStream(),
-                        new TypeReference<List<EmploymentType>>() {
-                        });
-                if (employmentTypes.size() == 0) {
-                    break;
-                }
-
-                for (EmploymentType employmentType : employmentTypes) {
-                    if (!handler.handle(employmentType)) {
-                        break;
-                    }
-                }
-
-                if (pageOffset > 0) {
-                    // If requested pageOffset, don't process paging
-                    break;
-                }
-
-                page = getPage(response);
-                pageSize = getPerPage(response);
-
-                if ((page * pageSize) < totalCount) {
-                    page++;
-                    continue;
-                }
-
-                break;
-
-            } catch (IOException e) {
-                throw new ConnectorIOException("Failed to call SmartHR get employment_types API", e);
-            }
-        }
-
-        return totalCount;
+        return getAll(handler, options, pageSize, pageOffset, getEmpTypeEndpointURL(configuration), EmploymentType.class, EMPLOYMENT_TYPE_OBJECT_CLASS);
     }
 
     // JobTitle
@@ -620,58 +469,89 @@ public class SmartHRRESTClient implements SmartHRClient {
 
     @Override
     public int getJobTitles(SmartHRQueryHandler<JobTitle> handler, OperationOptions options, Set<String> fetchFieldsSet, int pageSize, int pageOffset) {
-        // Start from 1 in SmartHR
-        int page = 1;
-        if (pageOffset > 0) {
-            page = (int) Math.ceil(pageOffset / pageSize) + 1;
-        }
+        return getAll(handler, options, pageSize, pageOffset, getJobTitleEndpointURL(configuration), JobTitle.class, JOB_TITLE_OBJECT_CLASS);
+    }
 
-        int totalCount;
+    // Company
 
-        // If no requested pageOffset, fetch all pages
-        while (true) {
-            try (Response response = get(getJobTitleEndpointURL(configuration), page, pageSize)) {
-                if (response.code() != 200) {
-                    throw new ConnectorIOException(String.format("Failed to get SmartHR job_titles. statusCode: %d", response.code()));
-                }
-
-                // Success
-                totalCount = getTotalCount(response);
-
-                List<JobTitle> jobTitles = MAPPER.readValue(response.body().byteStream(),
-                        new TypeReference<List<JobTitle>>() {
-                        });
-                if (jobTitles.size() == 0) {
-                    break;
-                }
-
-                for (JobTitle jobTitle : jobTitles) {
-                    if (!handler.handle(jobTitle)) {
-                        break;
-                    }
-                }
-
-                if (pageOffset > 0) {
-                    // If requested pageOffset, don't process paging
-                    break;
-                }
-
-                page = getPage(response);
-                pageSize = getPerPage(response);
-
-                if ((page * pageSize) < totalCount) {
-                    page++;
-                    continue;
-                }
-
-                break;
-
-            } catch (IOException e) {
-                throw new ConnectorIOException("Failed to call SmartHR get job_titles API", e);
+    @Override
+    public Company getCompany(Uid uid, OperationOptions options, Set<String> fetchFieldsSet) {
+        // No API to fetch by uid currently.
+        // We need to fetch all companies and filter them by name.
+        final AtomicReference<Company> result = new AtomicReference<>();
+        getCompanies(c -> {
+            // Case in-sensitive
+            if (c.id.equalsIgnoreCase(uid.getUidValue())) {
+                result.set(c);
+                return false;
             }
-        }
+            return true;
+        }, options, fetchFieldsSet, configuration.getDefaultQueryPageSize(), 0);
 
-        return totalCount;
+        return result.get();
+    }
+
+    @Override
+    public Company getCompany(Name name, OperationOptions options, Set<String> fetchFieldsSet) {
+        // No API to fetch by name currently.
+        // We need to fetch all companies and filter them by name.
+        final AtomicReference<Company> result = new AtomicReference<>();
+        getCompanies(c -> {
+            // Case sensitive
+            if (c.name.equals(name.getNameValue())) {
+                result.set(c);
+                return false;
+            }
+            return true;
+        }, options, fetchFieldsSet, configuration.getDefaultQueryPageSize(), 0);
+
+        return result.get();
+    }
+
+    @Override
+    public int getCompanies(SmartHRQueryHandler<Company> handler, OperationOptions options, Set<String> fetchFieldsSet, int pageSize, int pageOffset) {
+        return getAll(handler, options, pageSize, pageOffset, getCompanyEndpointURL(configuration), Company.class, COMPANY_OBJECT_CLASS);
+    }
+
+    // Biz Establishment
+
+    @Override
+    public BizEstablishment getBizEstablishment(Uid uid, OperationOptions options, Set<String> fetchFieldsSet) {
+        // No API to fetch by uid currently.
+        // We need to fetch all biz_establishments and filter them by name.
+        final AtomicReference<BizEstablishment> result = new AtomicReference<>();
+        getBizEstablishments(b -> {
+            // Case in-sensitive
+            if (b.id.equalsIgnoreCase(uid.getUidValue())) {
+                result.set(b);
+                return false;
+            }
+            return true;
+        }, options, fetchFieldsSet, configuration.getDefaultQueryPageSize(), 0);
+
+        return result.get();
+    }
+
+    @Override
+    public BizEstablishment getBizEstablishment(Name name, OperationOptions options, Set<String> fetchFieldsSet) {
+        // No API to fetch by name currently.
+        // We need to fetch all biz_establishments and filter them by name.
+        final AtomicReference<BizEstablishment> result = new AtomicReference<>();
+        getBizEstablishments(b -> {
+            // Case sensitive
+            if (b.name.equals(name.getNameValue())) {
+                result.set(b);
+                return false;
+            }
+            return true;
+        }, options, fetchFieldsSet, configuration.getDefaultQueryPageSize(), 0);
+
+        return result.get();
+    }
+
+    @Override
+    public int getBizEstablishments(SmartHRQueryHandler<BizEstablishment> handler, OperationOptions options, Set<String> fetchFieldsSet, int pageSize, int pageOffset) {
+        return getAll(handler, options, pageSize, pageOffset, getBizEstablishmentEndpointURL(configuration), BizEstablishment.class, BIZ_ESTABLISHMENT_OBJECT_CLASS);
     }
 
     // Utilities
@@ -792,24 +672,24 @@ public class SmartHRRESTClient implements SmartHRClient {
     }
 
     private Response get(String url) throws IOException {
-        final Request request = new Request.Builder()
-                .url(url)
-                .get()
-                .build();
+        return get(url, null, -1, -1);
+    }
 
-        final Response response = httpClient.newCall(request).execute();
-
-        throwExceptionIfUnauthorized(response);
-        throwExceptionIfServerError(response);
-
-        return response;
+    private Response get(String url, int page, int pageSize) throws IOException {
+        return get(url, null, page, pageSize);
     }
 
     private Response get(String url, Map<String, String> params, int page, int pageSize) throws IOException {
         HttpUrl.Builder httpBuilder = HttpUrl.parse(url).newBuilder();
-        httpBuilder.addQueryParameter("page", String.valueOf(page));
-        httpBuilder.addQueryParameter("per_page", String.valueOf(pageSize));
-        params.entrySet().stream().forEach(entry -> httpBuilder.addQueryParameter(entry.getKey(), entry.getValue()));
+        if (page != -1) {
+            httpBuilder.addQueryParameter("page", String.valueOf(page));
+        }
+        if (pageSize != 1) {
+            httpBuilder.addQueryParameter("per_page", String.valueOf(pageSize));
+        }
+        if (params != null) {
+            params.entrySet().stream().forEach(entry -> httpBuilder.addQueryParameter(entry.getKey(), entry.getValue()));
+        }
 
         final Request request = new Request.Builder()
                 .url(httpBuilder.build())
@@ -824,22 +704,66 @@ public class SmartHRRESTClient implements SmartHRClient {
         return response;
     }
 
-    private Response get(String url, int page, int pageSize) throws IOException {
-        HttpUrl.Builder httpBuilder = HttpUrl.parse(url).newBuilder();
-        httpBuilder.addQueryParameter("page", String.valueOf(page));
-        httpBuilder.addQueryParameter("per_page", String.valueOf(pageSize));
+    protected <T> int getAll(SmartHRQueryHandler<T> handler, OperationOptions options, int pageSize, int pageOffset,
+                             String endpoimtURL, Class<T> clazz, ObjectClass objectClass) {
+        return getAll(handler, options, null, pageSize, pageOffset, endpoimtURL, clazz, objectClass);
+    }
 
-        final Request request = new Request.Builder()
-                .url(httpBuilder.build())
-                .get()
-                .build();
+    protected <T> int getAll(SmartHRQueryHandler<T> handler, OperationOptions options, Map<String, String> params, int pageSize, int pageOffset,
+                             String endpoimtURL, Class<T> clazz, ObjectClass objectClass) {
+        // Start from 1 in SmartHR
+        int page = 1;
+        if (pageOffset > 0) {
+            page = (int) Math.ceil(pageOffset / pageSize) + 1;
+        }
 
-        final Response response = httpClient.newCall(request).execute();
+        int totalCount;
 
-        throwExceptionIfUnauthorized(response);
-        throwExceptionIfServerError(response);
+        // If no requested pageOffset, fetch all pages
+        while (true) {
+            try (Response response = get(endpoimtURL, params, page, pageSize)) {
+                if (response.code() != 200) {
+                    throw new ConnectorIOException(String.format("Failed to get SmartHR %s. statusCode: %d",
+                            objectClass.getObjectClassValue(), response.code()));
+                }
 
-        return response;
+                // Success
+                totalCount = getTotalCount(response);
+
+                List<T> objects = MAPPER.readValue(response.body().byteStream(),
+                        new TypeReference<List<T>>() {
+                        });
+                if (objects.size() == 0) {
+                    break;
+                }
+
+                for (T object : objects) {
+                    if (!handler.handle(object)) {
+                        break;
+                    }
+                }
+
+                if (pageOffset > 0) {
+                    // If requested pageOffset, don't process paging
+                    break;
+                }
+
+                page = getPage(response);
+                pageSize = getPerPage(response);
+
+                if ((page * pageSize) < totalCount) {
+                    page++;
+                    continue;
+                }
+
+                break;
+
+            } catch (IOException e) {
+                throw new ConnectorIOException(String.format("Failed to call SmartHR list %s API", objectClass.getObjectClassValue()), e);
+            }
+        }
+
+        return totalCount;
     }
 
     private int getPage(Response response) {

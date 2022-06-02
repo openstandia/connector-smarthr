@@ -368,7 +368,8 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
                 SmartHRClient.Crew.class,
                 null,
                 (source) -> source.created_at,
-                null
+                null,
+                NOT_CREATABLE, NOT_UPDATABLE
         );
         sb.add("updated_at",
                 SchemaDefinition.Types.DATETIME_STRING,
@@ -376,7 +377,8 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
                 SmartHRClient.Crew.class,
                 null,
                 (source) -> source.updated_at,
-                null
+                null,
+                NOT_CREATABLE, NOT_UPDATABLE
         );
 
         // Custom Fields

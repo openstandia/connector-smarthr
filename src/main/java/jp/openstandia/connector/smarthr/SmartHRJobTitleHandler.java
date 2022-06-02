@@ -84,7 +84,8 @@ public class SmartHRJobTitleHandler implements SmartHRObjectHandler {
                 SmartHRClient.JobTitle.class,
                 null,
                 (source) -> source.created_at,
-                null
+                null,
+                NOT_CREATABLE, NOT_UPDATABLE
         );
         sb.add("updated_at",
                 SchemaDefinition.Types.DATETIME_STRING,
@@ -92,7 +93,8 @@ public class SmartHRJobTitleHandler implements SmartHRObjectHandler {
                 SmartHRClient.JobTitle.class,
                 null,
                 (source) -> source.updated_at,
-                null
+                null,
+                NOT_CREATABLE, NOT_UPDATABLE
         );
 
         LOGGER.ok("The constructed job_title schema");
