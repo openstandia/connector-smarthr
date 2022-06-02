@@ -184,7 +184,7 @@ public class SmartHRDepartmentHandler implements SmartHRObjectHandler {
     public int getAll(ResultsHandler resultsHandler, OperationOptions options,
                       Set<String> returnAttributesSet, Set<String> fetchFieldsSet,
                       boolean allowPartialAttributeValues, int pageSize, int pageOffset) {
-        return client.getDepartments((crew) -> resultsHandler.handle(toConnectorObject(schema, crew, returnAttributesSet, allowPartialAttributeValues)),
+        return client.getDepartments((dept) -> resultsHandler.handle(toConnectorObject(schema, dept, returnAttributesSet, allowPartialAttributeValues)),
                 options, fetchFieldsSet, pageSize, pageOffset);
     }
 }

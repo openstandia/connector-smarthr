@@ -171,7 +171,7 @@ public class SmartHRJobTitleHandler implements SmartHRObjectHandler {
     public int getAll(ResultsHandler resultsHandler, OperationOptions options,
                       Set<String> returnAttributesSet, Set<String> fetchFieldsSet,
                       boolean allowPartialAttributeValues, int pageSize, int pageOffset) {
-        return client.getJobTitles((crew) -> resultsHandler.handle(toConnectorObject(schema, crew, returnAttributesSet, allowPartialAttributeValues)),
+        return client.getJobTitles((jobTitle) -> resultsHandler.handle(toConnectorObject(schema, jobTitle, returnAttributesSet, allowPartialAttributeValues)),
                 options, fetchFieldsSet, pageSize, pageOffset);
     }
 }

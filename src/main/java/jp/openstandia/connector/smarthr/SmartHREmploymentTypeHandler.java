@@ -162,7 +162,7 @@ public class SmartHREmploymentTypeHandler implements SmartHRObjectHandler {
     public int getAll(ResultsHandler resultsHandler, OperationOptions options,
                       Set<String> returnAttributesSet, Set<String> fetchFieldsSet,
                       boolean allowPartialAttributeValues, int pageSize, int pageOffset) {
-        return client.getEmploymentTypes((crew) -> resultsHandler.handle(toConnectorObject(schema, crew, returnAttributesSet, allowPartialAttributeValues)),
+        return client.getEmploymentTypes((empType) -> resultsHandler.handle(toConnectorObject(schema, empType, returnAttributesSet, allowPartialAttributeValues)),
                 options, fetchFieldsSet, pageSize, pageOffset);
     }
 }

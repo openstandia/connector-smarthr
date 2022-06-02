@@ -205,7 +205,8 @@ public class SmartHRRESTClient implements SmartHRClient {
         params.put("sort", "emp_code");
         params.put("fields", String.join(",", fetchFieldsSet));
 
-        return getAll(handler, options, params, pageSize, pageOffset, getCrewEndpointURL(configuration), Crew.class, CREW_OBJECT_CLASS);
+        return getAll(handler, options, params, pageSize, pageOffset, getCrewEndpointURL(configuration), new TypeReference<List<Crew>>() {
+        }, CREW_OBJECT_CLASS);
     }
 
     // Department
@@ -301,7 +302,8 @@ public class SmartHRRESTClient implements SmartHRClient {
         Map<String, String> params = new HashMap<>();
         params.put("sort", "code");
 
-        return getAll(handler, options, params, pageSize, pageOffset, getDeptEndpointURL(configuration), Department.class, DEPARTMENT_OBJECT_CLASS);
+        return getAll(handler, options, params, pageSize, pageOffset, getDeptEndpointURL(configuration), new TypeReference<List<Department>>() {
+        }, DEPARTMENT_OBJECT_CLASS);
     }
 
     // EmploymentType
@@ -385,7 +387,8 @@ public class SmartHRRESTClient implements SmartHRClient {
 
     @Override
     public int getEmploymentTypes(SmartHRQueryHandler<EmploymentType> handler, OperationOptions options, Set<String> fetchFieldsSet, int pageSize, int pageOffset) {
-        return getAll(handler, options, pageSize, pageOffset, getEmpTypeEndpointURL(configuration), EmploymentType.class, EMPLOYMENT_TYPE_OBJECT_CLASS);
+        return getAll(handler, options, pageSize, pageOffset, getEmpTypeEndpointURL(configuration), new TypeReference<List<EmploymentType>>() {
+        }, EMPLOYMENT_TYPE_OBJECT_CLASS);
     }
 
     // JobTitle
@@ -469,7 +472,8 @@ public class SmartHRRESTClient implements SmartHRClient {
 
     @Override
     public int getJobTitles(SmartHRQueryHandler<JobTitle> handler, OperationOptions options, Set<String> fetchFieldsSet, int pageSize, int pageOffset) {
-        return getAll(handler, options, pageSize, pageOffset, getJobTitleEndpointURL(configuration), JobTitle.class, JOB_TITLE_OBJECT_CLASS);
+        return getAll(handler, options, pageSize, pageOffset, getJobTitleEndpointURL(configuration), new TypeReference<List<JobTitle>>() {
+        }, JOB_TITLE_OBJECT_CLASS);
     }
 
     // Company
@@ -510,7 +514,8 @@ public class SmartHRRESTClient implements SmartHRClient {
 
     @Override
     public int getCompanies(SmartHRQueryHandler<Company> handler, OperationOptions options, Set<String> fetchFieldsSet, int pageSize, int pageOffset) {
-        return getAll(handler, options, pageSize, pageOffset, getCompanyEndpointURL(configuration), Company.class, COMPANY_OBJECT_CLASS);
+        return getAll(handler, options, pageSize, pageOffset, getCompanyEndpointURL(configuration), new TypeReference<List<Company>>() {
+        }, COMPANY_OBJECT_CLASS);
     }
 
     // Biz Establishment
@@ -551,7 +556,8 @@ public class SmartHRRESTClient implements SmartHRClient {
 
     @Override
     public int getBizEstablishments(SmartHRQueryHandler<BizEstablishment> handler, OperationOptions options, Set<String> fetchFieldsSet, int pageSize, int pageOffset) {
-        return getAll(handler, options, pageSize, pageOffset, getBizEstablishmentEndpointURL(configuration), BizEstablishment.class, BIZ_ESTABLISHMENT_OBJECT_CLASS);
+        return getAll(handler, options, pageSize, pageOffset, getBizEstablishmentEndpointURL(configuration), new TypeReference<List<BizEstablishment>>() {
+        }, BIZ_ESTABLISHMENT_OBJECT_CLASS);
     }
 
     // Utilities
@@ -705,15 +711,17 @@ public class SmartHRRESTClient implements SmartHRClient {
     }
 
     protected <T> int getAll(SmartHRQueryHandler<T> handler, OperationOptions options, int pageSize, int pageOffset,
-                             String endpoimtURL, Class<T> clazz, ObjectClass objectClass) {
-        return getAll(handler, options, null, pageSize, pageOffset, endpoimtURL, clazz, objectClass);
+                             String endpointURL, TypeReference<List<T>> valueTypeRef, ObjectClass objectClass) {
+        return getAll(handler, options, null, pageSize, pageOffset, endpointURL, valueTypeRef, objectClass);
     }
 
     protected <T> int getAll(SmartHRQueryHandler<T> handler, OperationOptions options, Map<String, String> params, int pageSize, int pageOffset,
-                             String endpoimtURL, Class<T> clazz, ObjectClass objectClass) {
+                             String endpointURL, TypeReference<List<T>> valueTypeRef, ObjectClass objectClass) {
         // Start from 1 in SmartHR
         int page = 1;
-        if (pageOffset > 0) {
+
+        // If pageOffset is 1, it means showing first page only
+        if (pageOffset > 1) {
             page = (int) Math.ceil(pageOffset / pageSize) + 1;
         }
 
@@ -721,18 +729,17 @@ public class SmartHRRESTClient implements SmartHRClient {
 
         // If no requested pageOffset, fetch all pages
         while (true) {
-            try (Response response = get(endpoimtURL, params, page, pageSize)) {
+            try (Response response = get(endpointURL, params, page, pageSize)) {
                 if (response.code() != 200) {
-                    throw new ConnectorIOException(String.format("Failed to get SmartHR %s. statusCode: %d",
-                            objectClass.getObjectClassValue(), response.code()));
+                    ErrorResponse error = MAPPER.readValue(response.body().byteStream(), ErrorResponse.class);
+                    throw new ConnectorIOException(String.format("Failed to get SmartHR %s. statusCode: %d, message: %s",
+                            objectClass.getObjectClassValue(), response.code(), response.message()));
                 }
 
                 // Success
                 totalCount = getTotalCount(response);
 
-                List<T> objects = MAPPER.readValue(response.body().byteStream(),
-                        new TypeReference<List<T>>() {
-                        });
+                List<T> objects = MAPPER.readValue(response.body().byteStream(), valueTypeRef);
                 if (objects.size() == 0) {
                     break;
                 }

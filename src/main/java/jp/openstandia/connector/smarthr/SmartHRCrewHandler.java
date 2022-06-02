@@ -406,7 +406,7 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
                                 }
                                 return null;
                             },
-                            "customField"
+                            "custom_fields"
                     );
                     break;
                 case "decimal":
@@ -429,7 +429,7 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
                                 }
                                 return null;
                             },
-                            "customField"
+                            "custom_fields"
                     );
                     break;
                 case "date":
@@ -452,7 +452,7 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
                                 }
                                 return null;
                             },
-                            "customField"
+                            "custom_fields"
                     );
                     break;
                 case "file":
