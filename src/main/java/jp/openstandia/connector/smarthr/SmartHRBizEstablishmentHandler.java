@@ -16,7 +16,6 @@
 package jp.openstandia.connector.smarthr;
 
 import org.identityconnectors.common.logging.Log;
-import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.*;
 
 import java.util.Set;

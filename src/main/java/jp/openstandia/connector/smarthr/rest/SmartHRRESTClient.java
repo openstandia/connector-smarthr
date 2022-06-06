@@ -678,19 +678,15 @@ public class SmartHRRESTClient implements SmartHRClient {
     }
 
     private Response get(String url) throws IOException {
-        return get(url, null, -1, -1);
+        return get(url, null, 0, 0);
     }
 
-    private Response get(String url, int page, int pageSize) throws IOException {
-        return get(url, null, page, pageSize);
-    }
-
-    private Response get(String url, Map<String, String> params, int page, int pageSize) throws IOException {
+    private Response get(String url, Map<String, String> params, int pageNumber, int pageSize) throws IOException {
         HttpUrl.Builder httpBuilder = HttpUrl.parse(url).newBuilder();
-        if (page != -1) {
-            httpBuilder.addQueryParameter("page", String.valueOf(page));
+        if (pageNumber > 0) {
+            httpBuilder.addQueryParameter("page", String.valueOf(pageNumber));
         }
-        if (pageSize != 1) {
+        if (pageSize > 0) {
             httpBuilder.addQueryParameter("per_page", String.valueOf(pageSize));
         }
         if (params != null) {
@@ -717,60 +713,139 @@ public class SmartHRRESTClient implements SmartHRClient {
 
     protected <T> int getAll(SmartHRQueryHandler<T> handler, OperationOptions options, Map<String, String> params, int pageSize, int pageOffset,
                              String endpointURL, TypeReference<List<T>> valueTypeRef, ObjectClass objectClass) {
-        // Start from 1 in SmartHR
-        int page = 1;
+        PageInfo pageInfo = newPageInfo(pageOffset, pageSize);
 
-        // If pageOffset is 1, it means showing first page only
-        if (pageOffset > 1) {
-            page = (int) Math.ceil(pageOffset / pageSize) + 1;
-        }
+        if (pageInfo.isRequestedFullPage()) {
+            // Start from 1 in SmartHR
+            int pageNumber = 1;
+            int total;
 
-        int totalCount;
+            while (true) {
+                try (Response response = get(endpointURL, params, pageNumber, pageSize)) {
+                    if (response.code() != 200) {
+                        ErrorResponse error = MAPPER.readValue(response.body().byteStream(), ErrorResponse.class);
+                        throw new ConnectorIOException(String.format("Failed to get SmartHR %s. statusCode: %d, message: %s",
+                                objectClass.getObjectClassValue(), response.code(), response.message()));
+                    }
 
-        // If no requested pageOffset, fetch all pages
-        while (true) {
-            try (Response response = get(endpointURL, params, page, pageSize)) {
-                if (response.code() != 200) {
-                    ErrorResponse error = MAPPER.readValue(response.body().byteStream(), ErrorResponse.class);
-                    throw new ConnectorIOException(String.format("Failed to get SmartHR %s. statusCode: %d, message: %s",
-                            objectClass.getObjectClassValue(), response.code(), response.message()));
-                }
+                    // Success
+                    total = getTotalCount(response);
 
-                // Success
-                totalCount = getTotalCount(response);
-
-                List<T> objects = MAPPER.readValue(response.body().byteStream(), valueTypeRef);
-                if (objects.size() == 0) {
-                    break;
-                }
-
-                for (T object : objects) {
-                    if (!handler.handle(object)) {
+                    List<T> objects = MAPPER.readValue(response.body().byteStream(), valueTypeRef);
+                    if (objects.size() == 0) {
                         break;
                     }
-                }
 
-                if (pageOffset > 0) {
-                    // If requested pageOffset, don't process paging
+                    for (T object : objects) {
+                        if (!handler.handle(object)) {
+                            break;
+                        }
+                    }
+
+                    pageNumber = getPage(response);
+                    pageSize = getPerPage(response);
+
+                    if ((pageNumber * pageSize) < total) {
+                        pageNumber++;
+                        continue;
+                    }
                     break;
+
+                } catch (IOException e) {
+                    throw new ConnectorIOException(String.format("Failed to call SmartHR list %s API", objectClass.getObjectClassValue()), e);
                 }
-
-                page = getPage(response);
-                pageSize = getPerPage(response);
-
-                if ((page * pageSize) < totalCount) {
-                    page++;
-                    continue;
-                }
-
-                break;
-
-            } catch (IOException e) {
-                throw new ConnectorIOException(String.format("Failed to call SmartHR list %s API", objectClass.getObjectClassValue()), e);
             }
+            return total;
+
+        } else {
+            // Start from 1 in SmartHR
+            int pageNumber = pageInfo.initPage;
+            int total = 0;
+
+            for (int i = 0; i < pageInfo.times; i++) {
+                final int skipCount = i == 0 ? pageInfo.skipCount : 0;
+
+                try (Response response = get(endpointURL, params, pageNumber, pageSize)) {
+                    if (response.code() != 200) {
+                        ErrorResponse error = MAPPER.readValue(response.body().byteStream(), ErrorResponse.class);
+                        throw new ConnectorIOException(String.format("Failed to get SmartHR %s. statusCode: %d, message: %s",
+                                objectClass.getObjectClassValue(), response.code(), response.message()));
+                    }
+
+                    // Success
+                    total = getTotalCount(response);
+
+                    List<T> objects = MAPPER.readValue(response.body().byteStream(), valueTypeRef);
+                    if (objects.size() == 0) {
+                        break;
+                    }
+
+                    int count = 0;
+                    for (T object : objects) {
+                        if (count < skipCount) {
+                            count++;
+                            continue;
+                        }
+
+                        if (!handler.handle(object)) {
+                            break;
+                        }
+                    }
+
+                    pageNumber = getPage(response);
+                    pageSize = getPerPage(response);
+
+                    if ((pageNumber * pageSize) < total) {
+                        pageNumber++;
+                        continue;
+                    }
+
+                    break;
+
+                } catch (IOException e) {
+                    throw new ConnectorIOException(String.format("Failed to call SmartHR list %s API", objectClass.getObjectClassValue()), e);
+                }
+            }
+
+            return total;
+        }
+    }
+
+    protected static class PageInfo {
+        public final int pageOffset;
+        public final int initPage;
+        public final int skipCount;
+        public final int times;
+
+        public PageInfo(int pageOffset, int initPage, int skipCount, int times) {
+            this.pageOffset = pageOffset;
+            this.initPage = initPage;
+            this.skipCount = skipCount;
+            this.times = times;
         }
 
-        return totalCount;
+        public boolean isRequestedFullPage() {
+            return pageOffset == 0;
+        }
+    }
+
+    protected static PageInfo newPageInfo(int pageOffset, int pageSize) {
+        // Convert Offset-based pagination to Page-based pagination
+        // Note: ConnId starts offset 1
+        if (pageOffset == 0) {
+            // Requested full page
+            return new PageInfo(pageOffset, 1, 0, -1);
+
+        } else if ((pageOffset + pageSize - 1) % pageSize == 0) {
+            int initPage = (pageOffset + pageSize - 1) / pageSize;
+            return new PageInfo(pageOffset, initPage, 0, 1);
+
+        } else {
+            int initPage = ((pageOffset + pageSize - 1) / pageSize);
+            int skipCount = pageOffset - ((initPage - 1) * pageSize) - 1;
+
+            return new PageInfo(pageOffset, initPage, skipCount, 2);
+        }
     }
 
     private int getPage(Response response) {

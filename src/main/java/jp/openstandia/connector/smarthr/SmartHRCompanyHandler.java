@@ -16,7 +16,6 @@
 package jp.openstandia.connector.smarthr;
 
 import org.identityconnectors.common.logging.Log;
-import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.*;
 
 import java.util.Set;
@@ -110,7 +109,7 @@ public class SmartHRCompanyHandler implements SmartHRObjectHandler {
 
     @Override
     public Uid create(Set<Attribute> attributes) {
-       throw new UnsupportedOperationException("SmartHR API doesn't support creating company");
+        throw new UnsupportedOperationException("SmartHR API doesn't support creating company");
     }
 
     @Override

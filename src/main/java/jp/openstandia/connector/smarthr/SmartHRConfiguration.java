@@ -25,13 +25,13 @@ public class SmartHRConfiguration extends AbstractConfiguration {
     private String endpointURL;
     private GuardedString apiAccessToken;
     private String httpProxyHost;
-    private Integer httpProxyPort = 3128;
+    private int httpProxyPort = 3128;
     private String httpProxyUser;
     private GuardedString httpProxyPassword;
-    private Integer defaultQueryPageSize = 50;
-    private Integer connectionTimeoutInSeconds = 10;
-    private Integer readTimeoutInSeconds = 10;
-    private Integer writeTimeoutInSeconds = 10;
+    private int defaultQueryPageSize = 50;
+    private int connectionTimeoutInSeconds = 10;
+    private int readTimeoutInSeconds = 10;
+    private int writeTimeoutInSeconds = 10;
 
     @ConfigurationProperty(
             order = 1,
