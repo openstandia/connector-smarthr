@@ -159,8 +159,8 @@ public class SmartHRConfiguration extends AbstractConfiguration {
         return readTimeoutInSeconds;
     }
 
-    public void setReadTimeoutInSeconds(int writeTimeoutInSeconds) {
-        this.writeTimeoutInSeconds = writeTimeoutInSeconds;
+    public void setReadTimeoutInSeconds(int readTimeoutInSeconds) {
+        this.readTimeoutInSeconds = readTimeoutInSeconds;
     }
 
     @ConfigurationProperty(
