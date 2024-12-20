@@ -210,6 +210,7 @@ public interface SmartHRClient {
         public String employment_type_id;
         public EmploymentType employment_type;
         public String position;
+        public List<Position> positions;
         public String occupation;
         public List<CustomField> custom_fields;
     }
@@ -235,6 +236,16 @@ public interface SmartHRClient {
         public String created_at;
         public String updated_at;
         public Integer position;
+    }
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    class Position {
+        public String id;
+        public String name;
+        public Integer rank;
+        public String code;
+        public String created_at;
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)

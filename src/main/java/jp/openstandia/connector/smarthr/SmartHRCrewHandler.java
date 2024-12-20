@@ -24,10 +24,7 @@ import org.identityconnectors.framework.common.objects.*;
 
 import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static jp.openstandia.connector.smarthr.SchemaDefinition.SchemaOption.*;
@@ -254,6 +251,25 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
                 (source) -> source.position,
                 null
         );
+        // readonly
+        sb.add("raw_positions",
+                SchemaDefinition.Types.JSON,
+                SmartHRClient.Crew.class,
+                SmartHRClient.Crew.class,
+                null,
+                (source) -> {
+                    if (source.positions == null) {
+                        return null;
+                    }
+                    try {
+                        return mapper.writeValueAsString(source.positions);
+                    } catch (JsonProcessingException ignore) {
+                        return null;
+                    }
+                },
+                "positions",
+                NOT_CREATABLE, NOT_UPDATABLE, NOT_RETURN_BY_DEFAULT
+        );
         sb.add("occupation",
                 SchemaDefinition.Types.STRING,
                 SmartHRClient.Crew.class,
@@ -283,34 +299,26 @@ public class SmartHRCrewHandler implements SmartHRObjectHandler {
                 (source, dest) -> dest.department_ids = source,
                 (add, dest) -> dest.department_ids.addAll(add),
                 (remove, dest) -> dest.department_ids.removeAll(remove),
-                (source) -> source.departments != null ? source.departments.stream().map(d -> d.id).collect(Collectors.toList()) : null,
+                (source) -> source.departments != null ? source.departments.stream()
+                        .filter(Objects::nonNull)
+                        .map(d -> d.id).collect(Collectors.toList()) : null,
                 null
         );
         // readonly
-        sb.addAsMultiple("raw_departments",
+        sb.add("raw_departments",
                 SchemaDefinition.Types.JSON,
                 SmartHRClient.Crew.class,
                 SmartHRClient.Crew.class,
-                SmartHRClient.Crew.class,
-                null,
-                null,
                 null,
                 (source) -> {
                     if (source.departments == null) {
                         return null;
                     }
-                    List<String> depts = source.departments.stream()
-                            .map(d -> {
-                                // TODO use jackson native feature
-                                try {
-                                    return mapper.writeValueAsString(d);
-                                } catch (JsonProcessingException ignore) {
-                                    return null;
-                                }
-                            })
-                            .filter(d -> d != null)
-                            .collect(Collectors.toList());
-                    return depts;
+                    try {
+                        return mapper.writeValueAsString(source.departments);
+                    } catch (JsonProcessingException ignore) {
+                        return null;
+                    }
                 },
                 "departments",
                 NOT_CREATABLE, NOT_UPDATABLE, NOT_RETURN_BY_DEFAULT
